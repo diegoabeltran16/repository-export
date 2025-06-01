@@ -1,0 +1,8 @@
+{
+  "title": "-.github_workflows_go-test.yml",
+  "text": "## [[Tags]]\n[[--- 🧬 Por Clasificar]]\n\n```bash\nname: Go CI\n\n# Se ejecuta en cada push o PR a main (puedes ajustar rama)\non:\n  push:\n    branches: [ main ]\n  pull_request:\n    branches: [ main ]\n\njobs:\n  test:\n    runs-on: ubuntu-latest\n\n    steps:\n      - name: Chequear código\n        uses: actions/checkout@v3\n\n      - name: Instalar Go\n        uses: actions/setup-go@v4\n        with:\n          go-version: '1.21'\n\n      - name: Cache de módulos\n        uses: actions/cache@v3\n        with:\n          path: ~/.cache/go-build\n          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}\n          restore-keys: |\n            ${{ runner.os }}-go-\n\n      - name: Descarga dependencias\n        run: go mod download\n\n      - name: Ejecutar tests\n        run: go test ./... -v\n\n```",
+  "tags": "[[--- 🧬 Por Clasificar]]",
+  "type": "text/markdown",
+  "created": "20250531223113418",
+  "modified": "20250531223113418"
+}

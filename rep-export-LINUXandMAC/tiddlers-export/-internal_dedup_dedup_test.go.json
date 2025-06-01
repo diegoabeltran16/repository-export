@@ -1,0 +1,8 @@
+{
+  "title": "-internal_dedup_dedup_test.go",
+  "text": "## [[Tags]]\n[[--- 🧬 Por Clasificar]]\n\n```go\npackage dedup\n\nimport (\n\t\"os\"\n\t\"testing\"\n)\n\nfunc TestMemStore(t *testing.T) {\n\ts := NewMemStore()\n\tif s.Seen(\"x\") {\n\t\tt.Fatalf(\"hash inesperado\")\n\t}\n\tif err := s.Mark(\"x\"); err != nil {\n\t\tt.Fatal(err)\n\t}\n\tif !s.Seen(\"x\") {\n\t\tt.Fatalf(\"hash debería existir\")\n\t}\n}\n\nfunc TestFileStore(t *testing.T) {\n\ttmp, err := os.CreateTemp(\"\", \"hashes-*.txt\")\n\tif err != nil {\n\t\tt.Fatal(err)\n\t}\n\tpath := tmp.Name()\n\ttmp.Close()\n\tdefer os.Remove(path)\n\n\ts, err := NewFileStore(path)\n\tif err != nil {\n\t\tt.Fatal(err)\n\t}\n\tif s.Seen(\"a\") {\n\t\tt.Fatalf(\"hash inesperado\")\n\t}\n\tif err := s.Mark(\"a\"); err != nil {\n\t\tt.Fatal(err)\n\t}\n\tif !s.Seen(\"a\") {\n\t\tt.Fatalf(\"hash debería existir tras Mark\")\n\t}\n\ts.Close()\n\n\t// Reabrir y asegurar que persiste\n\ts2, err := NewFileStore(path)\n\tif err != nil {\n\t\tt.Fatal(err)\n\t}\n\tif !s2.Seen(\"a\") {\n\t\tt.Fatalf(\"hash debería persistir en disco\")\n\t}\n\ts2.Close()\n}\n\n```",
+  "tags": "[[--- 🧬 Por Clasificar]]",
+  "type": "text/markdown",
+  "created": "20250531224148700",
+  "modified": "20250531224148700"
+}
