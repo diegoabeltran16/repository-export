@@ -125,4 +125,3 @@ Y si lo mejoras: compártelo.
 
 ## 📄 Licencia
 Apache 2.0 — Puedes usarlo, modificarlo y distribuirlo libremente, siempre que mantengas el aviso de licencia y las condiciones incluidas.
-
