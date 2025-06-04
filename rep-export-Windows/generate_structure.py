@@ -26,7 +26,7 @@ Requisitos
 Uso
 ---
 ```powershell
-python generate_structure_windows.py
+python rep-export-Windows\generate_structure.py
 ```
 Añade la ruta al `PATH` si decides moverlo a otra carpeta.
 """

@@ -23,8 +23,7 @@ Uso:
   python scripts/tiddler_exporter.py
 
   # Modo simulación: muestra qué se actualizaría sin escribir archivos
-  python scripts/tiddler_exporter.py --dry-run
-
+  python rep-export-Windows\tiddler_exporter.py
 """
 import os
 import json
