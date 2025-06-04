@@ -1,8 +1,0 @@
-{
-  "title": "-.github_dependabot.yml",
-  "text": "## [[Tags]]\n[[--- 🧬 Por Clasificar]]\n\n```bash\n# To get started with Dependabot version updates, you'll need to specify which\n# package ecosystems to update and where the package manifests are located.\n# Please see the documentation for all configuration options:\n# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file\n\nversion: 2\nupdates:\n  - package-ecosystem: \"pip\" # See documentation for possible values\n    directory: \"/\" # Location of package manifests\n    schedule:\n      interval: \"weekly\"\n\n```",
-  "tags": "[[--- 🧬 Por Clasificar]]",
-  "type": "text/markdown",
-  "created": "20250531223113417",
-  "modified": "20250531223113417"
-}

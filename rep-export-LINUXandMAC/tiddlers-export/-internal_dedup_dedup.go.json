@@ -1,8 +1,0 @@
-{
-  "title": "-internal_dedup_dedup.go",
-  "text": "## [[Tags]]\n[[--- 🧬 Por Clasificar]]\n\n```go\npackage dedup\n\nimport (\n\t\"crypto/sha256\"\n\t\"encoding/hex\"\n\n\t\"github.com/diegoabeltran16/OpenPages-Source/models\"\n)\n\n// Store representa un backend de deduplicación.\n//   - Seen(hash)  → true  si el hash ya existía.\n//   - Mark(hash)  → persiste el hash (cuando es nuevo).\n//   - Close()     → libera recursos (flush, close, etc.).\ntype Store interface {\n\tSeen(hash string) bool\n\tMark(hash string) error\n\tClose() error\n}\n\n// HashTiddler genera un SHA-256 estable a partir de campos que\n// identifican de manera única la versión de un tiddler.\n// Cambios en Title, Modified o Text ⇒ nuevo hash.\nfunc HashTiddler(t models.Tiddler) string {\n\th := sha256.New()\n\th.Write([]byte(t.Title))\n\th.Write([]byte{0})\n\th.Write([]byte(t.Modified))\n\th.Write([]byte{0})\n\th.Write([]byte(t.Text))\n\treturn hex.EncodeToString(h.Sum(nil))\n}\n\n```",
-  "tags": "[[--- 🧬 Por Clasificar]]",
-  "type": "text/markdown",
-  "created": "20250531224148700",
-  "modified": "20250531224148700"
-}

@@ -16,10 +16,10 @@ y si es así, genera un archivo `.json` (un tiddler en formato TiddlyWiki) listo
 ✅ Cómo ejecutarlo:
 
     # Exporta solo si hay cambios detectados
-    python3 rep-export-LINUX/tiddler_exporter.py
+    python3 rep-export-LINUXandMAC/tiddler_exporter.py
 
     # Modo simulación (solo imprime qué archivos cambiarían)
-    python3 rep-export-LINUX/tiddler_exporter.py --dry-run
+    python3 rep-export-LINUXandMAC/tiddler_exporter.py --dry-run
 """
 
 import os

@@ -16,10 +16,10 @@ y si es así, genera un archivo `.json` en formato TiddlyWiki listo para ser imp
 ✅ Cómo ejecutarlo:
 
     # Exporta solo si hay cambios
-    python scripts/tiddler_exporter.py
+    python rep-export-Windows/tiddler_exporter.py
 
     # Modo simulación (muestra qué archivos cambiarían)
-    python scripts/tiddler_exporter.py --dry-run
+    python rep-export-Windows/tiddler_exporter.py --dry-run
 """
 
 import os

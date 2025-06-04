@@ -1,8 +1,0 @@
-{
-  "title": "-models_tiddler.go",
-  "text": "## [[Tags]]\n[[--- 🧬 Por Clasificar]]\n\n```go\n// models/tiddler.go – Definición del Tiddler crudo exportado de TiddlyWiki\n// -----------------------------------------------------------\n// Package models contiene las estructuras de datos centrales para el pipeline.\npackage models\n\n// Tiddler representa un elemento exportado de TiddlyWiki.\n// Cada campo refleja el JSON original:\n//  - Title:    Título único del tiddler.\n//  - Text:     Contenido bruto (puede incluir JSON embebido, Markdown, texto plano).\n//  - Type:     Tipo MIME del contenido (e.g., application/json, text/markdown).\n//  - Tags:     Cadena con etiquetas en formato [[tag1]] [[tag2]].\n//  - Created:  Timestamp de creación en formato TiddlyWiki.\n//  - Modified: Timestamp de última modificación en formato TiddlyWiki.\n//  - Color:    Color asociado (opcional).\n//  - TmapID:   Identificador interno de TiddlyMap (opcional).\ntype Tiddler struct {\n\tTitle    string `json:\"title\"`\n\tText     string `json:\"text\"`\n\tType     string `json:\"type\"`\n\tTags     string `json:\"tags\"`\n\tCreated  string `json:\"created\"`\n\tModified string `json:\"modified\"`\n\tColor    string `json:\"color,omitempty\"`\n\tTmapID   string `json:\"tmap.id,omitempty\"`\n}\n\n```",
-  "tags": "[[--- 🧬 Por Clasificar]]",
-  "type": "text/markdown",
-  "created": "20250531224148704",
-  "modified": "20250531224148704"
-}

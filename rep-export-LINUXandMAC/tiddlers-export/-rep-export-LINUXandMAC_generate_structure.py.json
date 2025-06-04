@@ -1,8 +1,8 @@
 {
-  "title": "-rep-export-LINUX_generate_structure.py",
+  "title": "-rep-export-LINUXandMAC_generate_structure.py",
   "text": "## [[Tags]]\n[[--- 🧬 Por Clasificar]]\n\n```python\n\"\"\"\n📦 Script: generate_structure.py\n📍 Ubicación: rep-export-LINUX/generate_structure.py\n\n🧠 Función:\nEste script genera una vista estructurada del proyecto y la guarda como `estructura.txt` en la raíz del repositorio.\n\nSe basa en el comando de Windows `tree /F /A`, que:\n- Muestra carpetas y archivos\n- Usa solo caracteres ASCII (compatibles con UTF-8)\n\n🎯 Este archivo es utilizado por otros módulos (como `tiddler_exporter.py`)\npara detectar cambios estructurales\n\n✅ Cómo ejecutarlo:\n\n    python3 rep-export-LINUX/generate_structure.py\n\"\"\"\n\nimport subprocess\nfrom pathlib import Path\n\ndef generate_structure_file():\n    \"\"\"Genera `estructura.txt` con tree -a -F en codificación UTF-8 (Linux).\"\"\"\n    root = Path(__file__).resolve().parents[1]  # Carpeta raíz del proyecto\n    output_path = root / \"estructura.txt\"\n\n    try:\n        with open(output_path, \"w\", encoding=\"utf-8\") as f:\n            subprocess.run([\"tree\", \"-a\", \"-F\"], cwd=root, stdout=f)\n        print(f\"\\n📂 Estructura del proyecto exportada a:\\n   {output_path}\")\n    except FileNotFoundError:\n        print(\"❌ El comando 'tree' no está instalado. Instálalo con:\\n   sudo apt install tree\")\n\n# 🚪 Entrada directa\nif __name__ == \"__main__\":\n    generate_structure_file()\n\n```",
   "tags": "[[--- 🧬 Por Clasificar]]",
   "type": "text/markdown",
-  "created": "20250531223113417",
-  "modified": "20250531223113417"
+  "created": "20250603172144468",
+  "modified": "20250603172144468"
 }
