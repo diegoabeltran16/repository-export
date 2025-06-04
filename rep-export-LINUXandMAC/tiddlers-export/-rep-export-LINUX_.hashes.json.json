@@ -1,8 +1,0 @@
-{
-  "title": "-rep-export-LINUX_.hashes.json",
-  "text": "## [[Tags]]\n[[--- 🧬 Por Clasificar]]\n\n```json\n{\n  \"estructura.txt\": \"abda8367dcfa15557c0cc6d63326444910e1d6b0\",\n  \"README.md\": \"bfeb7140b6b57f5122975894299fd3c950508237\",\n  \"SECURITY.md\": \"97a7e101ca65c9e5810729c9666b2fb36bad1e8a\",\n  \".gitignore\": \"33b0b6bc0e9321b4f20386ffa95cb013f1298d22\",\n  \"data/in/tiddlers.json\": \"45e8b66738c71b4bf6b75696845795ada56f1f13\",\n  \"rep-export-LINUX/.hashes.json\": \"da39a3ee5e6b4b0d3255bfef95601890afd80709\",\n  \"rep-export-LINUX/tiddler_exporter.py\": \"7d11c21e818c7375322d72b07cbca15101446acf\",\n  \"rep-export-LINUX/generate_structure.py\": \"85ceb3d9c60c102af70e8f34a37afca2c72d5771\",\n  \"rep-export-LINUX/tag_mapper.py\": \"6438822f9aa4b154ba8fa8c4c349af0f59678b8c\",\n  \".github/dependabot.yml\": \"05390588a40f5e1f8b2c9807377968d00476c433\",\n  \".github/workflows/go-test.yml\": \"a9ce32693b48cdb2b655ccdf729563fb491d49fe\"\n}\n```",
-  "tags": "[[--- 🧬 Por Clasificar]]",
-  "type": "text/markdown",
-  "created": "20250531224148704",
-  "modified": "20250531224148704"
-}

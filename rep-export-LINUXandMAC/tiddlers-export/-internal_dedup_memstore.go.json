@@ -1,8 +1,0 @@
-{
-  "title": "-internal_dedup_memstore.go",
-  "text": "## [[Tags]]\n[[--- 🧬 Por Clasificar]]\n\n```go\npackage dedup\n\nimport \"sync\"\n\n// MemStore mantiene los hashes sólo en RAM (no persiste).\ntype MemStore struct {\n\tmu  sync.RWMutex\n\tset map[string]struct{}\n}\n\n// NewMemStore crea un Store sin persistencia: ideal para tests.\nfunc NewMemStore() *MemStore {\n\treturn &MemStore{set: make(map[string]struct{})}\n}\n\nfunc (m *MemStore) Seen(h string) bool {\n\tm.mu.RLock()\n\t_, ok := m.set[h]\n\tm.mu.RUnlock()\n\treturn ok\n}\n\nfunc (m *MemStore) Mark(h string) error {\n\tm.mu.Lock()\n\tm.set[h] = struct{}{}\n\tm.mu.Unlock()\n\treturn nil\n}\n\nfunc (m *MemStore) Close() error { return nil }\n\n```",
-  "tags": "[[--- 🧬 Por Clasificar]]",
-  "type": "text/markdown",
-  "created": "20250531224148701",
-  "modified": "20250531224148701"
-}
