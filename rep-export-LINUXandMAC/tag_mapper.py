@@ -1,155 +1,149 @@
-#!/usr/bin/env python3
 """
-📦 Módulo: tag_mapper.py
+📦 Módulo: tag_mapper.py — versión extendida
 🎯 Plataforma: Linux / macOS
 
-Función:
-Este módulo se encarga de asignar tags semánticos a cada archivo de un repositorio.
-Primero intenta cargar tags personalizados desde archivos JSON en `tiddler_tag_doc/`.
-Si no hay un tag personalizado para el archivo, asigna un tag basado en el tipo de archivo (extensión).
+Descripción
+===========
+Asigna tags semánticos a los archivos del repositorio para que el sistema de
+embeddings pueda elegir el *modelo óptimo* según el tipo de contenido.
 
-Salida:
-- Lista de tags en formato TiddlyWiki (`[[TagName]]`).
+Orden de precedencia para asignar tags
+-------------------------------------
+1. **Tags personalizados** definidos en JSON dentro de `tiddler_tag_doc/`.
+2. **Tags automáticos** basados en la extensión o nombre especial del archivo.
+3. Fallback: `[[--- 🧬 Por Clasificar]]`.
+
+Ejemplo de salida
+-----------------
+```
+['[[Python]]']                 # para .py
+['[[Markdown]]']               # para .md
+['[[BioInfo]]']                # para .vcf o .fasta
+['[[Modelo Simbólico]]']       # para .iching o nota simbólica
+```
+
+Estos tags serán consumidos por `model_selector.py` para decidir si usar un
+modelo de lenguaje general, de código, biomédico o simbólico.
 """
+
 import json
 from pathlib import Path
 import os
+from typing import List
 
-# ========================================
-# ⚙️ CONFIGURACIÓN: ruta a la carpeta de JSON de tags
-# ========================================
-TIDDLER_TAG_DIR = Path(__file__).resolve().parents[0] / "tiddler_tag_doc"
+# ==============================
+# 1. Cargar JSON personalizados
+# ==============================
+TIDDLER_TAG_DIR = Path(__file__).resolve().parent / "tiddler_tag_doc"
+custom_tags: List[dict] = []
 
-# Carga todos los JSON en la carpeta para construir un índice título→tags
-title_to_tags = {}
-
-if TIDDLER_TAG_DIR.exists() and TIDDLER_TAG_DIR.is_dir():
-    for json_path in sorted(TIDDLER_TAG_DIR.glob("*.json")):
+def _load_custom_tags():
+    if not TIDDLER_TAG_DIR.exists():
+        return
+    for json_file in sorted(TIDDLER_TAG_DIR.glob("*.json")):
         try:
-            with open(json_path, 'r', encoding='utf-8') as f:
+            with open(json_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                if isinstance(data, list):
-                    for item in data:
-                        title = item.get("title", "").strip()
-                        tags_str = item.get("tags", "").strip()
-                        if title and isinstance(tags_str, str):
-                            # Convertir cadena de tags en lista: asume sintaxis [[Tag]]
-                            tags_list = tags_str.split()
-                            title_to_tags[title] = tags_list
-        except json.JSONDecodeError:
-            print(f"⚠️ JSON inválido en: {json_path.name}, se omite.")
-        except Exception as e:
-            print(f"⚠️ Error al leer '{json_path.name}': {e}")
-else:
-    # Si no existe la carpeta, no hay tags personalizados
-    pass
+            if isinstance(data, list):
+                custom_tags.extend(data)
+        except Exception:
+            print(f"⚠️ No se pudo leer {json_file}")
 
-# ========================================
-# 🗂️ Mapeo de extensiones a nombres de tags
-# ========================================
-EXTENSION_TAG_MAP = {
-    '.py': 'Python',
-    '.md': 'Markdown',
-    '.json': 'JSON',
-    '.sh': 'Shell',
-    '.bash': 'Shell',
-    '.yml': 'YAML',
-    '.yaml': 'YAML',
-    '.html': 'HTML',
-    '.htm': 'HTML',
-    '.css': 'CSS',
-    '.go': 'Go',
-    '.js': 'JavaScript',
-    '.ts': 'TypeScript',
-    '.java': 'Java',
-    '.c': 'C',
-    '.cpp': 'C++',
-    '.cc': 'C++',
-    '.hpp': 'C++',
-    '.h': 'C/C++ Header',
-    '.rs': 'Rust',
-    '.rb': 'Ruby',
-    '.php': 'PHP',
-    '.kt': 'Kotlin',
-    '.kts': 'Kotlin',
-    '.swift': 'Swift',
-    '.xml': 'XML',
-    '.sql': 'SQL',
-    '.toml': 'TOML',
-    '.csv': 'CSV',
-    '.pl': 'Perl',
-    '.lua': 'Lua',
-    '.ps1': 'PowerShell',
-    '.bat': 'Batch',
-    '.dockerfile': 'Dockerfile',
-    '.makefile': 'Makefile',
-    '.tex': 'LaTeX',
-    '.rst': 'reStructuredText',
-    '.cfg': 'Config',
-    '.ini': 'Config',
-    '.log': 'Log',
-    '.txt': 'Text'
+_load_custom_tags()
+TITLE_TO_TAGS = {
+    item.get("title", "").strip(): item.get("tags", "").split()
+    for item in custom_tags if isinstance(item, dict)
 }
 
-# Algunos archivos sin extensión específica tienen nombres propios
-SPECIAL_FILENAMES = {
-    'Dockerfile': 'Dockerfile',
-    'Makefile': 'Makefile',
-    'README': 'README',
-    'LICENSE': 'License'
+# ==================================
+# 2. Tabla de tags automáticos
+# ==================================
+extension_to_tag = {
+    # 📄 Documentación / marcado
+    ".md": "[[Markdown]]",
+    ".rst": "[[Markdown]]",
+    ".txt": "[[Markdown]]",
+    ".html": "[[HTML]]",
+    ".css": "[[CSS]]",
+    ".ipynb": "[[Jupyter]]",
+    # 💻 Código fuente (modelos de código)
+    ".py": "[[Python]]",
+    ".js": "[[JavaScript]]",
+    ".ts": "[[TypeScript]]",
+    ".java": "[[Java]]",
+    ".c": "[[C]]",
+    ".h": "[[C]]",
+    ".cpp": "[[Cpp]]",
+    ".hpp": "[[Cpp]]",
+    ".go": "[[Go]]",
+    ".rb": "[[Ruby]]",
+    ".rs": "[[Rust]]",
+    ".php": "[[PHP]]",
+    ".kt": "[[Kotlin]]",
+    ".swift": "[[Swift]]",
+    ".sh": "[[Shell]]",
+    ".ps1": "[[PowerShell]]",
+    ".bat": "[[Batch]]",
+    ".pl": "[[Perl]]",
+    ".lua": "[[Lua]]",
+    ".r": "[[R]]",
+    # 🔧 Config / datos
+    ".json": "[[JSON]]",
+    ".yml": "[[YAML]]",
+    ".yaml": "[[YAML]]",
+    ".toml": "[[TOML]]",
+    ".ini": "[[TOML]]",
+    ".csv": "[[CSV]]",
+    ".xml": "[[XML]]",
+    ".sql": "[[SQL]]",
+    # 🐳 Infraestructura
+    "Dockerfile": "[[Dockerfile]]",
+    "Makefile": "[[Makefile]]",
+    # 🧬 Bioinformática
+    ".fasta": "[[BioInfo]]",
+    ".fastq": "[[BioInfo]]",
+    ".vcf": "[[BioInfo]]",
+    ".gff": "[[BioInfo]]",
+    ".pdb": "[[BioInfo]]",
+    # ✨ Contenido simbólico (extensiones hipotéticas)
+    ".iching": "[[Modelo Simbólico]]",
 }
 
-# Etiqueta por defecto cuando no se reconoce el tipo
-DEFAULT_TAG = 'Unknown'
+# Archivos sin extensión con nombre especial
+special_name_to_tag = {
+    "Dockerfile": "[[Dockerfile]]",
+    "Makefile": "[[Makefile]]",
+    ".gitignore": "[[Git]]",
+}
 
-# ========================================
-# 🔎 FUNCIÓN PRINCIPAL: obtener lista de tags
-# ========================================
+# ==============================
+# 3. Función principal
+# ==============================
 
-def get_tags_for_file(file_path: Path) -> list[str]:
-    """
-    Dado un Path de archivo dentro del repositorio, retorna lista de tags.
-    - Primero: intenta encontrar en el índice `title_to_tags` (JSON definidos).
-    - Si no existe, deriva un tag basado en la extensión o nombre de archivo.
+def get_tags_for_file(file_path: Path) -> List[str]:
+    """Devuelve una lista de tags TiddlyWiki para el archivo dado."""
 
-    Retorna:
-    - List[str]: lista de tags en formato `[[TagName]]`.
-    """
-    # Construir la clave de título en formato TiddlyWiki: prefijo '-' y slashes reemplazados
-    try:
-        root_dir = Path(__file__).resolve().parents[1]
-        rel_path = str(file_path.relative_to(root_dir)).replace(os.sep, '_')
-        title = '-' + rel_path
-    except Exception:
-        # Si falla, usar solo el nombre de archivo
-        title = '-' + file_path.name
+    # 3.1 Primero: buscar en JSON personalizados
+    rel_title = "-" + str(file_path.relative_to(Path(__file__).resolve().parents[1])).replace(os.sep, '_')
+    if rel_title in TITLE_TO_TAGS:
+        return TITLE_TO_TAGS[rel_title]
 
-    # 1) Verificar tags personalizados
-    if title in title_to_tags:
-        return title_to_tags[title]
-
-    # 2) Derivar tag por extensión
+    # 3.2 Segundo: asignar por nombre especial o extensión
     name = file_path.name
-    ext = file_path.suffix.lower()
+    if name in special_name_to_tag:
+        return [special_name_to_tag[name]]
 
-    # Revisar archivos con nombre especial (sin extensión)
-    if name in SPECIAL_FILENAMES:
-        tag_name = SPECIAL_FILENAMES[name]
-    # Revisar mapeo por extensión
-    elif ext in EXTENSION_TAG_MAP:
-        tag_name = EXTENSION_TAG_MAP[ext]
-    else:
-        tag_name = DEFAULT_TAG
+    tag = extension_to_tag.get(file_path.suffix.lower())
+    if tag:
+        return [tag]
 
-    # Formatear como tag TiddlyWiki
-    return [f"[[{tag_name}]]"]
+    # 3.3 Fallback
+    return ['[[--- 🧬 Por Clasificar]]']
 
-# Permitir uso del módulo como script para pruebas
-if __name__ == '__main__':
+# ------------------------------
+if __name__ == "__main__":
+    # Pequeño test manual
     import sys
-    if len(sys.argv) < 2:
-        print("Uso: python tag_mapper.py <ruta_archivo>")
-        sys.exit(1)
-    fp = Path(sys.argv[1])
-    tags = get_tags_for_file(fp)
-    print(f"Archivo: {fp} → Tags: {tags}")
+    for f in sys.argv[1:]:
+        p = Path(f)
+        print(p, "->", get_tags_for_file(p))
