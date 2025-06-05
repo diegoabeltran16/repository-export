@@ -7,7 +7,7 @@ version: 2
 
 updates:
   - package-ecosystem: "pip"
-    directory: "/"
+    directory: "/"  # Aquí vive pyproject.toml
     schedule:
       interval: "daily"
       time: "02:00"
@@ -17,3 +17,4 @@ updates:
         applies-to: "security-updates"
         patterns:
           - "*"
+
