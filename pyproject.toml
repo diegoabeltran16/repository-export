@@ -1,0 +1,68 @@
+# pyproject.toml — configuración del proyecto “repository-export”
+# ---------------------------------------------------------------
+# Este archivo configura el build y las dependencias del proyecto tal como
+# está actualmente (solo los scripts en rep-export-Windows y rep-export-LINUXandMAC).
+#
+# No hay dependencias externas fuera de la biblioteca estándar de Python.
+# Ajusta el campo authors, urls y version según tus necesidades.
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+# Información básica del proyecto
+name = "repository-export"
+version = "0.1.0"
+description = "Automatiza la creación de documentación semántica a partir de repositorios de código, generando tiddlers para TiddlyWiki."
+readme = "README.md"
+requires-python = ">=3.7"
+authors = [
+  { name = "Tu Nombre", email = "tu.email@example.com" }
+]
+
+# No hay dependencias externas más allá de la biblioteca estándar
+dependencies = []
+
+# Metadatos adicionales (opcional)
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Topic :: Software Development :: Documentation",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Operating System :: OS Independent"
+]
+
+[project.urls]
+"Home" = "https://github.com/tuusuario/repository-export"
+"Repository" = "https://github.com/tuusuario/repository-export"
+"License" = "LICENSE"
+
+# Si en el futuro quieres agregar entry points para invocar los scripts más fácilmente,
+# descomenta y ajusta las rutas a las funciones main correspondientes en cada script.
+# En este momento, los scripts se ejecutan directamente con:
+#   python rep-export-Windows/generate_structure.py
+#   python rep-export-Windows/tiddler_exporter.py
+#   python rep-export-LINUXandMAC/generate_structure.py
+#   python rep-export-LINUXandMAC/tiddler_exporter.py
+
+# [project.scripts]
+# generate-structure-windows = "rep-export-Windows.generate_structure:main"
+# export-tiddlers-windows   = "rep-export-Windows.tiddler_exporter:main"
+# generate-structure-unix    = "rep-export-LINUXandMAC.generate_structure:main"
+# export-tiddlers-unix       = "rep-export-LINUXandMAC.tiddler_exporter:main"
+
+[tool.setuptools.packages.find]
+# Por defecto, setuptools buscará paquetes en el directorio raíz
+where = ["."]
+# Dado que no tenemos módulos empaquetables (solo scripts), no es necesario indicar include/exclude específicos.
+
+[tool.setuptools]
+# Si en el futuro conviertes rep-export-* en paquetes importables, ajusta esta sección.
+# [tool.setuptools.package-data]
+# "repository-export" = ["rep-export-Windows/*.py", "rep-export-LINUXandMAC/*.py"]

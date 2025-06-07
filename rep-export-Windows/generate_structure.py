@@ -1,10 +1,4 @@
 #!/usr/bin/env python3
-"""
-Rep-Export: Generador de estructura de proyecto (Windows)
-Crea un árbol ASCII filtrado de archivos/carpetas del repositorio,
-excluyendo dot-files, dependencias, artefactos y Gitignored si se indica.
-Escritura atómica y sin llamadas a shell.
-"""
 import os
 import sys
 import argparse
