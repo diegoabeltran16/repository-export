@@ -1,11 +1,14 @@
-name: python-tests
+name: CI - Run Tests
 
 on:
   push:
-    branches: [main, master]
+    branches: [ main, master ]
   pull_request:
-    branches: [main, master]
-  workflow_dispatch: {}
+    branches: [ main, master ]
+
+# 🛡️ Seguridad: GitHub token limitado a solo lectura
+permissions:
+  contents: read
 
 jobs:
   test-rep-export-windows:
