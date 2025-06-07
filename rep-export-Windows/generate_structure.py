@@ -1,121 +1,110 @@
-"""
-📦 Script: generate_structure_windows.py
-🖥️ Plataforma: Windows (PowerShell/Command Prompt)
-
-Objetivo
-========
-Generar `estructura.txt` en la raíz del repositorio con una representación
-ASCII del árbol de carpetas y archivos, **codificado en UTF‑8**, con detección
-de dependencias y manejo robusto de errores.
-
-Mejoras sobre la versión original
---------------------------------
-1. **Detección de PowerShell y fallback a cmd.exe**
-2. **Verificación de la presencia del comando *tree***
-3. **`subprocess.run(..., check=True)`** para propagar códigos de error.
-4. **Manejo explícito de excepciones** (`FileNotFoundError`,
-   `subprocess.CalledProcessError`).
-5. **Mensajes de diagnóstico coherentes** para el usuario.
-6. **Uso de rutas seguras** (`Path` → cadena con comillas dobles escapadas).
-
-Requisitos
-----------
-* Windows 10 o superior (o Windows Server).
-* Python 3.8+.
-
-Uso
----
-```powershell
-python rep-export-Windows\generate_structure.py
-```
-Añade la ruta al `PATH` si decides moverlo a otra carpeta.
-"""
-
-from __future__ import annotations
-
-import shutil
-import subprocess
+#!/usr/bin/env python3
+import os
 import sys
+import argparse
+import logging
+import tempfile
 from pathlib import Path
-from typing import Sequence, Optional
+import fnmatch
 
-# ----------------------------
-# 🛠️  Funciones auxiliares
-# ----------------------------
+# Listas de exclusión por defecto
+IGNORED_DIRS = {
+    '.git', '.svn', '.hg', '.idea', '__pycache__', 'node_modules',
+    'dist', 'build', 'venv', '.mypy_cache'
+}
+IGNORED_FILES = {'.DS_Store'}
+IGNORED_EXT = {
+    '.pyc', '.class', '.o', '.exe', '.dll', '.so', '.dylib', '.pdb'
+}
 
-
-def _find_powershell() -> Optional[str]:
-    """Devuelve la ruta a *powershell.exe* o *pwsh*, o *None* si no existe."""
-    return shutil.which("powershell") or shutil.which("pwsh")
-
-
-def _build_command(out_path: Path) -> tuple[Sequence[str], bool]:
-    """Construye el comando adecuado y devuelve `(cmd, shell)`.
-
-    * Si hay PowerShell disponible se usa `Out-File` (UTF‑8).
-    * En caso contrario se hace *fallback* a `cmd.exe /c tree`.
-    """
-    out_quoted = f"\"{out_path}\""  # comillas dobles para rutas con espacios
-
-    powershell = _find_powershell()
-    if powershell:
-        # Nota: `-NoProfile` acelera y evita scripts no confiables
-        cmd = [
-            powershell,
-            "-NoProfile",
-            "-Command",
-            f"tree /F /A | Out-File -FilePath {out_quoted} -Encoding utf8",
-        ]
-        return cmd, False  # shell innecesario
-
-    # --- Fallback a cmd.exe -------------------------------------------------
-    if shutil.which("cmd") is None:
-        raise FileNotFoundError(
-            "No se encontró PowerShell ni cmd.exe en el sistema; no es posible ejecutar 'tree'."
-        )
-
-    cmd = [
-        "cmd",
-        "/c",
-        f"tree /F /A > {out_quoted}"
-    ]
-    return cmd, False
+def load_gitignore_patterns(repo_root: Path):
+    patterns = []
+    gitignore = repo_root / '.gitignore'
+    if gitignore.is_file():
+        for line in gitignore.read_text(encoding='utf-8').splitlines():
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            patterns.append(line)
+    return patterns
 
 
-# ----------------------------
-# 🚀 Función principal
-# ----------------------------
+def matches_pattern(path: Path, patterns, repo_root: Path):
+    rel = str(path.relative_to(repo_root))
+    return any(fnmatch.fnmatch(rel, pat) for pat in patterns)
 
+def should_skip(path: Path, repo_root: Path, exclude_patterns, honor_gitignore, gitignore_patterns):
+    name = path.name
+    if name in IGNORED_DIRS or name in IGNORED_FILES:
+        return True
+    if path.suffix.lower() in IGNORED_EXT:
+        return True
+    if name.startswith('.'):
+        return True
+    if exclude_patterns and matches_pattern(path, exclude_patterns, repo_root):
+        return True
+    if honor_gitignore and gitignore_patterns and matches_pattern(path, gitignore_patterns, repo_root):
+        return True
+    return False
 
-def generate_structure_file() -> None:
-    """Genera `estructura.txt` con salida UTF‑8, manejando errores de forma explícita."""
-    root_dir = Path(__file__).resolve().parents[1]
-    out_path = root_dir / "estructura.txt"
-
-    # Asegurarse de que el comando *tree* está disponible (es interno, pero puede faltar)
-    if shutil.which("tree") is None:
-        print(
-            "❌ El comando 'tree' no está disponible en el sistema. "
-            "Instálalo con Winget (winget install gnuwin32.tree) o añade una alternativa compatible."
-        )
-        sys.exit(1)
-
-    cmd, use_shell = _build_command(out_path)
-
+def ascii_tree(root: Path, repo_root: Path, prefix='', args=None, gitignore_patterns=None):
+    lines = []
     try:
-        subprocess.run(cmd, cwd=root_dir, check=True, shell=use_shell)
-    except (FileNotFoundError, subprocess.CalledProcessError) as exc:
-        print("❌ Error al ejecutar el comando para generar la estructura:")
-        print(f"   {exc}")
-        sys.exit(1)
+        entries = sorted(root.iterdir(), key=lambda p: p.name.lower())
+    except PermissionError:
+        logging.warning(f"Permiso denegado: {root}")
+        return lines
+    entries = [e for e in entries if not should_skip(e, repo_root, args.exclude, args.honor_gitignore, gitignore_patterns)]
+    for idx, entry in enumerate(entries):
+        connector = '└── ' if idx == len(entries) - 1 else '├── '
+        lines.append(f"{prefix}{connector}{entry.name}")
+        if entry.is_dir() and not entry.is_symlink():
+            extension = '    ' if idx == len(entries) - 1 else '│   '
+            lines += ascii_tree(entry, repo_root, prefix + extension, args, gitignore_patterns)
+    return lines
 
-    print("\n📂 Estructura del proyecto exportada a:")
-    print(f"   {out_path}")
+def write_atomic(path: Path, lines):
+    tmp = tempfile.NamedTemporaryFile('w', delete=False, encoding='utf-8')
+    with tmp:
+        tmp.write('\n'.join(lines))
+    tmp_path = Path(tmp.name)
+    tmp_path.replace(path)
+    logging.info(f"Estructura escrita en {path}")
 
+def parse_args():
+    p = argparse.ArgumentParser(description="Genera estructura ASCII filtrada del repo.")
+    p.add_argument('--output', '-o', type=Path, default=Path('estructura.txt'),
+                   help="Ruta de salida relative al root del repositorio.")
+    p.add_argument('--exclude', '-e', action='append', default=[],
+                   help="Patrón glob para excluir (puede repetirse).")
+    p.add_argument('--exclude-from', type=Path,
+                   help="Archivo con patrones glob de exclusión (uno por línea).")
+    p.add_argument('--honor-gitignore', action='store_true',
+                   help="Excluir archivos/carpetas según .gitignore.")
+    p.add_argument('--verbose', '-v', action='count', default=0,
+                   help="Aumenta el nivel de verbosidad (más -v más logs).")
+    return p.parse_args()
 
-# ----------------------------
-# 🏁 Entrada directa
-# ----------------------------
+def main():
+    args = parse_args()
+    # Ajuste de logging
+    level = logging.WARNING - (10 * args.verbose)
+    logging.basicConfig(level=level, format='[%(levelname)s] %(message)s')
+    # Determinar repo root
+    repo_root = Path(__file__).resolve().parent.parent
+    os.chdir(repo_root)
+    # Cargar patrones de .gitignore
+    gitignore_patterns = load_gitignore_patterns(repo_root) if args.honor_gitignore else []
+    # Cargar exclude-from si se indicó
+    if args.exclude_from and args.exclude_from.is_file():
+        args.exclude += [line.strip() for line in args.exclude_from.read_text(encoding='utf-8').splitlines()
+                          if line.strip() and not line.startswith('#')]
+    # Generar árbol
+    logging.info(f"Generando estructura desde {repo_root}")
+    lines = ascii_tree(repo_root, repo_root, prefix='', args=args, gitignore_patterns=gitignore_patterns)
+    # Escribir
+    output_path = repo_root / args.output
+    write_atomic(output_path, lines)
 
-if __name__ == "__main__":
-    generate_structure_file()
+if __name__ == '__main__':
+    main()
