@@ -1,14 +1,17 @@
-name: CI - Run Tests
+name: python-tests
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
+  workflow_dispatch: {}
 
 jobs:
   test-rep-export-windows:
+    name: Windows / Python 3.9
     runs-on: windows-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -17,20 +20,21 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-          cache: 'pip'
+          cache: pip
 
-      - name: Install dependencies
+      - name: Install pytest
         run: |
           python -m pip install --upgrade pip
           pip install pytest
 
       - name: Run tests for rep-export-Windows
         working-directory: rep-export-Windows
-        run: |
-          pytest ../test-rep-export-Windows --maxfail=1 --disable-warnings -q
+        run: pytest ../test-rep-export-Windows --maxfail=1 --disable-warnings -q
 
-  test-other:
+  test-rep-export-linux-mac:
+    name: Linux / Python 3.9
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -39,13 +43,13 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-          cache: 'pip'
+          cache: pip
 
-      - name: Install dependencies
+      - name: Install pytest
         run: |
           python -m pip install --upgrade pip
           pip install pytest
 
-      - name: Run all tests
-        run: |
-          pytest --maxfail=1 --disable-warnings -q
+      - name: Run tests for rep-export-LINUXandMAC
+        working-directory: rep-export-LINUXandMAC
+        run: pytest ../test-rep-export-LINUXandMAC --maxfail=1 --disable-warnings -q

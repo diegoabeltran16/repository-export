@@ -1,80 +1,15 @@
 #!/usr/bin/env python3
 """
-📦 Script: generate_structure.py
-🖥️ Plataformas objetivo: Linux y macOS
+Script: generate_structure.py
+Plataformas objetivo: Linux y macOS
 
-Descripción general
-===================
-Este script genera un archivo `estructura.txt` que muestra el árbol completo
-de carpetas y archivos del repositorio usando solo caracteres ASCII y
-codificado en UTF‑8. El archivo se coloca por defecto en la raíz del proyecto,
-aunque se puede cambiar con la opción `--output`.
+Genera un archivo `estructura.txt` con el árbol del repositorio usando `tree`, filtrando archivos/carpetas sensibles para mejorar la privacidad.
+Uso:
+  python3 generate_structure.py [--root PATH] [--output PATH] [--honor-gitignore] [--exclude PATTERN] [--exclude-from FILE] [--dry-run]
 
-¿Por qué necesitamos esto?
--------------------------
-1. **Documentación viva del código**: Al hacer *commits* frecuentes del árbol
-   textual es fácil detectar cambios estructurales en revisiones de código.
-2. **Consistencia cross‑platform**: La salida ASCII es estable entre entornos,
-   lo que evita sorpresas en CI/CD al comparar *diffs*.
-3. **Compatibilidad con TiddlyWiki**: Otros scripts del proyecto consumen
-   `estructura.txt` para generar *tiddlers*.
-
-Dependencias
-------------
-* `tree`   → Instálalo con `sudo apt install tree` (Debian/Ubuntu),
-              `brew install tree` (macOS), o el gestor de paquetes de tu distro.
-* Python ≥ 3.8 (para `pathlib` y `argparse` con `subparsers` ordenados).
-
-Modos de ejecución (“runners”)
------------------------------
-El script admite **tres runners** que cubren los casos de uso más habituales:
-
-1. **Runner CLI interactivo**
-   Ejecuta:
-   ```bash
-   python3 rep-export-LINUXandMAC/generate_structure.py
-   ```
-   Crea/actualiza `estructura.txt` en la raíz y muestra un resumen ✅.
-
-2. **Runner CLI ‘dry‑run’**
-   Ejecuta:
-   ```bash
-   python3 rep-export-LINUXandMAC/generate_structure.py --dry-run
-   ```
-   Imprime la salida de `tree` en pantalla sin escribir el archivo.
-   Útil para inspecciones rápidas y para evitar *commits* de prueba.
-
-3. **Runner de librería (importable)**
-   Permite que otros módulos llamen:
-   ```python
-   from rep_export_linuxandmac.generate_structure import generate_structure
-   generate_structure(root=Path.cwd(), output=Path("/tmp/mi_tree.txt"))
-   ```
-   Ideal para pipelines CI/CD o para integrarlo en scripts más grandes.
-
-Estos tres runners son buenos porque:
-* **Flexibilidad** → Puedes usarlo de forma manual, automatizada o embebida.
-* **Reutilización** → No duplicas lógica; la misma función se comparte.
-* **Seguridad** → `--dry-run` evita sobreescrituras accidentales.
-
-Uso detallado
--------------
-```bash
-$ python3 generate_structure.py [-h] [--root PATH] [--output PATH] [--extra-args "-I node_modules"] [--dry-run]
-```
-* `--root PATH`     Ruta al proyecto (por defecto, dos niveles arriba del script).
-* `--output PATH`   Archivo de salida (por defecto, `<root>/estructura.txt`).
-* `--extra-args`    Flags adicionales que se pasarán literalmente a `tree`.
-* `--dry-run`       Muestra la salida por STDOUT en lugar de escribir archivo.
-
-Códigos de salida
------------------
-* `0` → Ejecución satisfactoria.
-* `1` → Error de dependencia (`tree` ausente).
-* `2` → Error al ejecutar `tree` o escribir el archivo.
+Ejemplo:
+  python3 generate_structure.py --honor-gitignore -e node_modules -e '*.log' --dry-run
 """
-from __future__ import annotations
-
 import argparse
 import shutil
 import subprocess
@@ -84,57 +19,95 @@ from typing import Final
 
 DEFAULT_ENCODING: Final = "utf-8"
 
+# Exclusiones por privacidad
+IGNORED_DIRS = {
+    '.git', '.svn', '.hg', '.idea', '__pycache__', 'node_modules',
+    'dist', 'build', 'venv', '.mypy_cache'
+}
+IGNORED_FILES = {'.DS_Store'}
+IGNORED_EXT = {'.pyc', '.class', '.o', '.exe', '.dll', '.so', '.dylib', '.pdb'}
 
-def _run_tree(root: Path, extra_args: str | None) -> str:
-    """Ejecuta el comando `tree` y devuelve su salida como *str* UTF‑8.
 
-    Parameters
-    ----------
-    root        Ruta desde donde se listarán los archivos.
-    extra_args  Cadena con opciones adicionales a `tree` (p.ej. "-I *.pyc").
+def load_gitignore_patterns(repo_root: Path) -> set[str]:
+    patterns: set[str] = set()
+    gitignore = repo_root / '.gitignore'
+    if gitignore.is_file():
+        for line in gitignore.read_text(encoding=DEFAULT_ENCODING).splitlines():
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+            patterns.add(line)
+    return patterns
+
+
+def build_exclude_glob(args, repo_root: Path) -> str:
     """
-    if shutil.which("tree") is None:
-        msg = (
-            "❌ No se encontró el comando `tree`. "
-            "Instálalo con `sudo apt install tree` o `brew install tree`."
-        )
-        print(msg, file=sys.stderr)
+    Construye patrón glob para excluir en `tree -I` basándose en las exclusiones por defecto,
+    .gitignore, exclude-from y exclude.
+    """
+    patterns: set[str] = set()
+    # Directorios y archivos por defecto
+    patterns.update(IGNORED_DIRS)
+    patterns.update(IGNORED_FILES)
+    # Extensiones
+    patterns.update(f"*{ext}" for ext in IGNORED_EXT)
+    # .gitignore si corresponde
+    if args.honor_gitignore:
+        patterns.update(load_gitignore_patterns(repo_root))
+    # exclude-from
+    if args.exclude_from and args.exclude_from.is_file():
+        for line in args.exclude_from.read_text(encoding=DEFAULT_ENCODING).splitlines():
+            line = line.strip()
+            if line and not line.startswith('#'):
+                patterns.add(line)
+    # exclude directo
+    if args.exclude:
+        patterns.update(args.exclude)
+    # Unir con '|'
+    return '|'.join(sorted(patterns))
+
+
+def _run_tree(root: Path, exclude_glob: str | None) -> str:
+    """
+    Ejecuta `tree` y devuelve la salida como UTF-8.
+    """
+    if shutil.which('tree') is None:
+        print("❌ No se encontró el comando `tree`. Instálalo con tu gestor de paquetes.", file=sys.stderr)
         sys.exit(1)
 
-    # Construimos la lista de argumentos para subprocess
-    cmd = ["tree", "-a", "-F"]  # -a → incluye ocultos | -F → sufijo por tipo
-    if extra_args:
-        cmd.extend(extra_args.split())
+    cmd = ['tree', '-a', '-F']
+    if exclude_glob:
+        cmd.extend(['-I', exclude_glob])
 
     try:
-        completed = subprocess.run(
+        result = subprocess.run(
             cmd,
             cwd=root,
             check=True,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stderr=subprocess.PIPE
         )
     except subprocess.CalledProcessError as exc:
-        print("❌ Error al ejecutar `tree`:", exc.stderr.decode(DEFAULT_ENCODING), file=sys.stderr)
+        print(f"❌ Error al ejecutar `tree`: {exc.stderr.decode(DEFAULT_ENCODING)}", file=sys.stderr)
         sys.exit(2)
 
-    return completed.stdout.decode(DEFAULT_ENCODING, errors="replace")
+    return result.stdout.decode(DEFAULT_ENCODING, errors='replace')
 
 
-def generate_structure(*, root: Path | None = None, output: Path | None = None, extra_args: str | None = None, dry_run: bool = False) -> None:
-    """Genera el archivo `estructura.txt` o imprime la salida si *dry_run*.
-
-    Parameters
-    ----------
-    root        Directorio raíz a escanear (defaults to repo root).
-    output      Ruta completa al archivo de salida.
-    extra_args  Flags extra para el comando `tree`.
-    dry_run     Cuando es `True`, no se escribe en disco; se imprime por STDOUT.
-    """
+def generate_structure(*, root: Path | None, output: Path | None, honor_gitignore: bool, exclude: list[str], exclude_from: Path | None, dry_run: bool) -> None:
     root = root or Path(__file__).resolve().parents[1]
-    output = output or root / "estructura.txt"
+    output = output or root / 'estructura.txt'
 
-    tree_output = _run_tree(root, extra_args)
+    exclude_glob = build_exclude_glob(
+        argparse.Namespace(
+            honor_gitignore=honor_gitignore,
+            exclude=exclude,
+            exclude_from=exclude_from
+        ),
+        root
+    )
+
+    tree_output = _run_tree(root, exclude_glob)
 
     if dry_run:
         print(tree_output)
@@ -147,23 +120,47 @@ def generate_structure(*, root: Path | None = None, output: Path | None = None, 
         print(f"❌ No se pudo escribir {output}: {exc}", file=sys.stderr)
         sys.exit(2)
 
-    print("\n📂 Estructura del proyecto exportada a:\n   ", output)
+    print(f"\n📂 Estructura exportada a: {output}")
 
 
 def _build_argparser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Genera un árbol ASCII del proyecto.")
-    parser.add_argument("--root", type=Path, help="Ruta raíz del proyecto (por defecto: repo root)")
-    parser.add_argument("--output", type=Path, help="Archivo de destino (por defecto: <root>/estructura.txt)")
-    parser.add_argument("--extra-args", help="Argumentos adicionales para el comando `tree`.")
-    parser.add_argument("--dry-run", action="store_true", help="Imprime la salida sin crear archivo.")
-    return parser
+    p = argparse.ArgumentParser(
+        description="Genera un árbol ASCII del proyecto con exclusiones de privacidad."
+    )
+    p.add_argument(
+        '--root', type=Path,
+        help="Ruta raíz del proyecto (por defecto: repo root)"
+    )
+    p.add_argument(
+        '--output', type=Path,
+        help="Archivo de destino (por defecto: <root>/estructura.txt)"
+    )
+    p.add_argument(
+        '--honor-gitignore', action='store_true',
+        help="Excluir patrones listados en .gitignore"
+    )
+    p.add_argument(
+        '--exclude', '-e', action='append', default=[],
+        help="Patrón glob adicional a excluir (puede repetirse)."
+    )
+    p.add_argument(
+        '--exclude-from', type=Path,
+        help="Archivo con patrones glob a excluir (uno por línea)."
+    )
+    p.add_argument(
+        '--dry-run', action='store_true',
+        help="Imprime la salida sin escribir archivo."
+    )
+    return p
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     args = _build_argparser().parse_args()
     generate_structure(
         root=args.root,
         output=args.output,
-        extra_args=args.extra_args,
-        dry_run=args.dry_run,
+        honor_gitignore=args.honor_gitignore,
+        exclude=args.exclude,
+        exclude_from=args.exclude_from,
+        dry_run=args.dry_run
     )
