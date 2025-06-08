@@ -1,7 +1,7 @@
 # 🧠 repository-export
 
-[![Linux/macOS CI](https://github.com/diegoabeltran16/repository-export/actions/workflows/linux-mac.yml/badge.svg)](https://github.com/diegoabeltran16/repository-export/actions/workflows/linux-mac.yml)
-[![Windows CI](https://github.com/diegoabeltran16/repository-export/actions/workflows/windows.yml/badge.svg)](https://github.com/diegoabeltran16/repository-export/actions/workflows/windows.yml)
+[![CI - Run Tests](https://github.com/diegoabeltran16/repository-export/actions/workflows/python-tests.yml/badge.svg)](https://github.com/diegoabeltran16/repository-export/actions/workflows/python-tests.yml)
+
 
 > Repositorio multiplataforma para exportar estructuras de proyectos y generar tiddlers TiddlyWiki con control de versiones y pruebas automatizadas.
 **Automatiza la creación de documentación semántica a partir de cualquier repositorio de código.**
