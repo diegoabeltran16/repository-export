@@ -1,0 +1,14 @@
+{
+  "estructura.txt": "1a3926cb7bef78020d1a24ee4c5d3315b1c84e35",
+  "LICENSE": "7df059597099bb7dcf25d2a9aedfaf4465f72d8d",
+  "README.md": "c8cd956c9e3b035e36c6802a6c07d79100e4d52f",
+  ".github\\dependabot.yml": "ca6ddd42534f983068a20c664867310fadc7e799",
+  "rep-export-LINUXandMAC\\.hashes.json": "31d3c511fd6371a08fdaf933e3ee2c44a79ab9ce",
+  "rep-export-LINUXandMAC\\generate_structure.py": "15ca98d8f7a9f0df923797091e70e0dbb05e79d0",
+  "rep-export-LINUXandMAC\\tag_mapper.py": "406a3785de014deb819501373d4be7db21b4c852",
+  "rep-export-LINUXandMAC\\tiddler_exporter.py": "c2753826491cd9d0ca547b48369e5f561f6836a5",
+  "rep-export-Windows\\.hashes.json": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+  "rep-export-Windows\\generate_structure.py": "c1a9458d52eec3f97edeb93641ff2440586ba2a7",
+  "rep-export-Windows\\tag_mapper.py": "576500b7c53d3888f18e1b89825a2006c8381936",
+  "rep-export-Windows\\tiddler_exporter.py": "5f1a0085f9b01a0d2b0fb53e751db3195e4bfb16"
+}
