@@ -1,35 +1,20 @@
 version: 2
+
 updates:
-  # Actualizaciones diarias de dependencias de Python
   - package-ecosystem: "pip"
-    directory: "/"        # Aquí vive tu pyproject.toml
+    directory: "/"                # donde vive tu pyproject.toml
     schedule:
       interval: "daily"
-      time: "02:00"       # Hora UTC para que las alertas lleguen temprano
-    # Limitar PRs abiertos para evitar sobrecarga
+      time: "02:00"               # hora UTC
     open-pull-requests-limit: 5
-    # Grupos de actualizaciones
+
+    # Grupos válidos (solo se permiten 'patterns' y/o 'exclude')
     groups:
-      # PRs separados solo para vulnerabilidades
       security-updates:
         patterns:
-          - ".*"           # todos los paquetes
-        labels:
-          - "security"
-        update-types:
-          - "version-update:semver-patch"
-          - "version-update:semver-minor"
-        # Solo vulnerabilidades
-        allowed:
-          - match:
-              dependency_type: "direct"
-        security-updates-only: true
-
-      # Resto de actualizaciones rutinarias
-      all-updates:
+          - "*"
+      routine-updates:
         patterns:
-          - "*"            # todos los paquetes
-        labels:
-          - "dependencies"
+          - "*"
         exclude:
-          - name: "pip"     # evita PRs para pip en sí mismo
+          - "pip"                 # evita PRs para pip en sí mismo
