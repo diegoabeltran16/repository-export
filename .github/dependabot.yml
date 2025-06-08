@@ -1,20 +1,35 @@
-# To get started with Dependabot version updates, you'll need to specify which
-# package ecosystems to update and where the package manifests are located.
-# Please see the documentation for all configuration options:
-# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
-
 version: 2
-
 updates:
+  # Actualizaciones diarias de dependencias de Python
   - package-ecosystem: "pip"
-    directory: "/"  # Aquí vive pyproject.toml
+    directory: "/"        # Aquí vive tu pyproject.toml
     schedule:
       interval: "daily"
-      time: "02:00"
-    open-pull-requests-limit: 0
+      time: "02:00"       # Hora UTC para que las alertas lleguen temprano
+    # Limitar PRs abiertos para evitar sobrecarga
+    open-pull-requests-limit: 5
+    # Grupos de actualizaciones
     groups:
-      python-security:
-        applies-to: "security-updates"
+      # PRs separados solo para vulnerabilidades
+      security-updates:
         patterns:
-          - "*"
+          - ".*"           # todos los paquetes
+        labels:
+          - "security"
+        update-types:
+          - "version-update:semver-patch"
+          - "version-update:semver-minor"
+        # Solo vulnerabilidades
+        allowed:
+          - match:
+              dependency_type: "direct"
+        security-updates-only: true
 
+      # Resto de actualizaciones rutinarias
+      all-updates:
+        patterns:
+          - "*"            # todos los paquetes
+        labels:
+          - "dependencies"
+        exclude:
+          - name: "pip"     # evita PRs para pip en sí mismo

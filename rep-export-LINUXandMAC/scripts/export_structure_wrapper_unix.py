@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-🤖 Asistente interactivo de exportación para Windows
-Ubicación: rep-export-Windows/scripts/export_structure_wrapper_windows.py
+🤖 Asistente interactivo de exportación para Linux/macOS
+Ubicación: rep-export-LINUXandMAC/scripts/export_structure_wrapper_unix.py
 
 Guía paso a paso para:
  1) Generar estructura ASCII
@@ -19,7 +19,7 @@ Utiliza `cli_utils.py` para:
 import sys
 from pathlib import Path
 
-# Incluir carpeta padre en path para importar cli_utils
+# Incluir carpeta padre para importar cli_utils
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from cli_utils import (
     prompt_yes_no,
@@ -32,7 +32,7 @@ from cli_utils import (
 
 def show_help():
     safe_print(__doc__)
-    safe_print("Ejemplo: opción 3 ejecuta los dos pasos en secuencia.")
+    safe_print("Ejemplo: opción 3 ejecuta ambos pasos en secuencia.")
 
 
 def get_menu_choice() -> str:

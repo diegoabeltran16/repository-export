@@ -30,59 +30,28 @@ Permite:
 
 ## 💻 Uso básico
 
+1. Clona el repositorio que deseas escanear y exportar
+2. Dependiendo de tu sistema operativo (OS) descarga la carpeta 
+rep-export-LINUXandMAC o rep-export-Windows
+3. Pega la carpeta en tu repositorio y asegurate de tener:
+**✅ Requisitos**
+- Python 3.7+
+- Comando `tree` instalado (`sudo apt install tree` o `brew install tree`)
+- PowerShell (Windows) o bash/zsh (Unix)
+4. (Opcional) Si tienes una estructura de tags en tu Tiddler puedes pegar la exportacion en formato .JSON en la carpeta: \tiddler_tag_doc
+5. Corre el comando que se ajuste a tus OS y elije el menu de opciones que se ajuste a tus necesidades
+
 ### Linux / macOS
 ```bash
-python3 rep-export-LINUXandMAC/generate_structure.py
-python3 rep-export-LINUXandMAC/tiddler_exporter.py
+python3 rep-export-LINUXandMAC/scripts/export_structure_wrapper_unix.py
 ```
 
 ### Windows
-```powershell
-python rep-export-Windows/generate_structure.py
-python rep-export-Windows/tiddler_exporter.py
-```
 
-### Opción: modo simulación (sin escribir archivos)
 ```bash
-python3 .../tiddler_exporter.py --dry-run
+python rep-export-Windows/scripts/export_structure_wrapper_windows.py
 ```
-
----
-
-## 🧩 Tags automáticos y personalizados
-
-📁 Si deseas control total sobre las etiquetas, crea archivos `.json` dentro de:
-- `rep-export-LINUXandMAC/tiddler_tag_doc/`
-- `rep-export-Windows/tiddler_tag_doc/`
-
-Ejemplo:
-```json
-[
-  { "title": "-src_utils_math.py", "tags": "[[Python]] [[Math]]" },
-  { "title": "-README.md", "tags": "[[Markdown]] [[📘 Doc]]" }
-]
-```
-
-🧠 Si no se encuentra ningún tag definido, se asigna uno según el tipo de archivo (p. ej. `.js` → `[[JavaScript]]`)
-
-📌 Si el archivo no tiene extensión reconocida, se etiqueta como: `[[--- 🧬 Por Clasificar]]`
-
----
-
-## 🧪 Control por hash
-
-🔐 Para evitar redundancia, el sistema genera tiddlers **solo si el archivo cambió**.  
-Se calcula un hash SHA-1 del contenido y se guarda en `.hashes.json`.
-
----
-
-## 📂 Carpeta de salida
-
-Los tiddlers generados van a:
-- `rep-export-Windows/tiddlers-export/`
-- `rep-export-LINUXandMAC/tiddlers-export/`
-
-Puedes importar estos `.json` directamente a TiddlyWiki (HTML offline o web).
+6. Revisa la carpeta \tiddlers-export que debio crearse automaticamente , alli encontraras los tiddlers convertidos en formato .JSON
 
 ---
 
@@ -106,13 +75,6 @@ Puedes importar estos `.json` directamente a TiddlyWiki (HTML offline o web).
 - 💡 Mantenibilidad multiplataforma
 
 > “El código solo es bueno si se puede entender” — Linus Torvalds
-
----
-
-## ✅ Requisitos
-- Python 3.7+
-- Comando `tree` instalado (`sudo apt install tree` o `brew install tree`)
-- PowerShell (Windows) o bash/zsh (Unix)
 
 ---
 
