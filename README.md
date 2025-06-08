@@ -1,5 +1,9 @@
 # 🧠 repository-export
 
+[![CI - Run Tests](https://github.com/diegoabeltran16/repository-export/actions/workflows/python-tests.yml/badge.svg)](https://github.com/diegoabeltran16/repository-export/actions/workflows/python-tests.yml)
+
+
+> Repositorio multiplataforma para exportar estructuras de proyectos y generar tiddlers TiddlyWiki con control de versiones y pruebas automatizadas.
 **Automatiza la creación de documentación semántica a partir de cualquier repositorio de código.**
 Convierte cada archivo fuente en un tiddler compatible con [TiddlyWiki](https://tiddlywiki.com), con etiquetas, fechas y contenido listo para navegar, estudiar o versionar.
 
@@ -74,7 +78,7 @@ python rep-export-Windows/scripts/export_structure_wrapper_windows.py
 - 📚 Documentación como parte del código
 - 💡 Mantenibilidad multiplataforma
 
-> “El código solo es bueno si se puede entender” — Linus Torvalds
+> “Cualquiera puede hablar, muestrame el codigo” — Linus Torvalds
 
 ---
 
