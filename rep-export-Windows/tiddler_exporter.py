@@ -21,6 +21,7 @@ Uso:
 import os
 import json
 import hashlib
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 import tag_mapper
@@ -74,6 +75,15 @@ def detect_language(path: Path) -> str:
     return tag_mapper.detect_language(path)
 
 
+def safe_print(message: str):
+    """Imprime evitando errores de codificación en consolas que no soportan algunos caracteres."""
+    try:
+        print(message)
+    except UnicodeEncodeError:
+        # Elimina caracteres no imprimibles
+        print(message.encode(sys.stdout.encoding, errors='ignore').decode(sys.stdout.encoding))
+
+
 def export_tiddlers(dry_run: bool = False):
     """
     Exporta tiddlers JSON para archivos modificados.
@@ -99,7 +109,11 @@ def export_tiddlers(dry_run: bool = False):
         title = safe_title(file)
         tags = tag_mapper.get_tags_for_file(file)
         lang = detect_language(file)
-        text_md = f"## [[Tags]]\n{' '.join(['[['+t.strip('[]')+']]' for t in tags])}\n\n```{lang}\n{content}\n```"
+        text_md = (
+            "## [[Tags]]\n"
+            f"{' '.join(tags)}\n\n"
+            f"```{lang}\n{content}\n```"
+        )
         tiddler = {
             'title': title,
             'text': text_md,
@@ -110,21 +124,24 @@ def export_tiddlers(dry_run: bool = False):
         }
         out = OUTPUT_DIR / f"{title}.json"
         if dry_run:
-            print(f"[dry-run] {rel}")
+            safe_print(f"[dry-run] {rel}")
         else:
             out.write_text(json.dumps(tiddler, ensure_ascii=False, indent=2), encoding='utf-8')
-            print(f"Exported: {rel}")
+            safe_print(f"Exported: {rel}")
         changed.append(rel)
 
     if not dry_run:
         HASH_FILE.write_text(json.dumps(new_hashes, indent=2), encoding='utf-8')
 
-    print(f"\n📦 Total cambios: {len(changed)}")
+    # Utilizar safe_print para evitar errores en consola
+    safe_print(f"\nTotal cambios: {len(changed)}")
     for c in changed:
-        print(f"  - {c}")
+        safe_print(f"  - {c}")
 
 
 if __name__ == '__main__':
     import sys
     dry = '--dry-run' in sys.argv
     export_tiddlers(dry_run=dry)
+
+# Fin del código
