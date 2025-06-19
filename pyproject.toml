@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "repository-export"
-version = "0.2.0"
+version = "0.3.0"  # bump por integración de .gitignore
 description = "Automatiza la creación de documentación semántica desde repositorios de código, generando tiddlers para TiddlyWiki."
 readme = "README.md"
 requires-python = ">=3.7"
@@ -32,9 +32,9 @@ classifiers = [
 "License" = "https://github.com/diegoabeltran16/repository-export/blob/main/LICENSE"
 
 [project.optional-dependencies]
-dev = ["pytest"]
-cli = ["rich"]
-gitignore = ["pathspec"]
+dev        = ["pytest"]
+cli        = ["rich"]
+gitignore  = ["pathspec>=0.10.1"]  # para soportar carga de .gitignore
 
 [tool.setuptools.packages.find]
 where = ["."]
