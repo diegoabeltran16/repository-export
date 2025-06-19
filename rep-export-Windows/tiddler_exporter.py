@@ -5,8 +5,8 @@ Plataforma: Windows
 
 Este script recorre los archivos del repositorio y crea archivos JSON (tiddlers) para TiddlyWiki.
 Mejoras:
-- Ignora patrones de .gitignore (salvo `estructura.txt`).
-- Exporta solo archivos con extensión válida o nombres especiales.
+- Ignora patrones de .gitignore (salvo `estructura.txt`, `.gitignore` y archivos .toml).
+- Exporta solo archivos con extensión válida, nombres especiales o excepciones.
 - Detecta cambios usando hashes para exportar únicamente archivos modificados.
 - Añade tags semánticos con `tag_mapper.get_tags_for_file`:
   * Tag basado en nombre (`-[ruta_con_underscores]`).
@@ -25,50 +25,64 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 import tag_mapper
+from cli_utils import load_ignore_spec, is_ignored
+
 
 # ===== Configuración =====
-ROOT_DIR = Path(__file__).resolve().parents[1]
-SCRIPT_DIR = Path(__file__).parent
-OUTPUT_DIR = SCRIPT_DIR / "tiddlers-export"
-HASH_FILE = SCRIPT_DIR / ".hashes.json"
-IGNORE_SPEC = tag_mapper.load_ignore_spec(ROOT_DIR)
+ROOT_DIR     = Path(__file__).resolve().parents[1]
+SCRIPT_DIR   = Path(__file__).parent
+OUTPUT_DIR   = SCRIPT_DIR / "tiddlers-export"
+HASH_FILE    = SCRIPT_DIR / ".hashes.json"
+IGNORE_SPEC  = tag_mapper.load_ignore_spec(ROOT_DIR)
 
 # Extensiones y nombres válidos
-VALID_EXT = set(tag_mapper.EXTENSION_TAG_MAP.keys())
+VALID_EXT    = set(tag_mapper.EXTENSION_TAG_MAP.keys())
+VALID_EXT.add(".toml")  # ➕ Soporte para archivos .toml
 ALLOWED_NAMES = set(tag_mapper.SPECIAL_FILENAMES.keys())
+ALLOWED_NAMES.update({".gitignore", "estructura.txt"})  # ➕ Excepciones
 
 # ===========================
 def get_all_files():
     """
     Genera todos los archivos a exportar:
-    - Siempre incluye 'estructura.txt'.
+    - Siempre incluye 'estructura.txt', '.gitignore' y *.toml.
     - Excluye archivos según .gitignore.
     - Filtra por extensiones o nombres especiales.
     """
     for dirpath, dirnames, filenames in os.walk(ROOT_DIR):
         # Evitar directorios internos
-        dirnames[:] = [d for d in dirnames if d not in ('tiddler_tag_doc', 'tiddlers-export')]
+        dirnames[:] = [
+            d for d in dirnames
+            if d not in ("tiddler_tag_doc", "tiddlers-export")
+        ]
         for name in filenames:
             path = Path(dirpath) / name
             rel = path.relative_to(ROOT_DIR)
-            if str(rel) == 'estructura.txt':
+            rel_str = str(rel)
+
+            # 1) Excepciones absolutas: siempre exportar
+            if rel_str == "estructura.txt" or rel_str == ".gitignore" or path.suffix.lower() == ".toml":
                 yield path
                 continue
-            if IGNORE_SPEC.match_file(str(rel)):
+
+            # 2) Patrón .gitignore
+            if IGNORE_SPEC.match_file(rel_str):
                 continue
+
+            # 3) Extensiones y nombres permitidos
             if path.suffix.lower() in VALID_EXT or name in ALLOWED_NAMES:
                 yield path
 
 
 def calc_hash(text: str) -> str:
-    return hashlib.sha1(text.encode('utf-8')).hexdigest()
+    return hashlib.sha1(text.encode("utf-8")).hexdigest()
 
 
 def safe_title(path: Path) -> str:
     """
     Convierte ruta en título: prefijo '-' y '_' en lugar de separadores.
     """
-    return '-' + str(path.relative_to(ROOT_DIR)).replace(os.sep, '_')
+    return "-" + str(path.relative_to(ROOT_DIR)).replace(os.sep, "_")
 
 
 def detect_language(path: Path) -> str:
@@ -80,8 +94,9 @@ def safe_print(message: str):
     try:
         print(message)
     except UnicodeEncodeError:
-        # Elimina caracteres no imprimibles
-        print(message.encode(sys.stdout.encoding, errors='ignore').decode(sys.stdout.encoding))
+        filtered = message.encode(sys.stdout.encoding or "utf-8", errors="ignore") \
+                          .decode(sys.stdout.encoding or "utf-8")
+        print(filtered)
 
 
 def export_tiddlers(dry_run: bool = False):
@@ -92,7 +107,7 @@ def export_tiddlers(dry_run: bool = False):
     old_hashes = {}
     if HASH_FILE.exists():
         try:
-            old_hashes = json.loads(HASH_FILE.read_text(encoding='utf-8'))
+            old_hashes = json.loads(HASH_FILE.read_text(encoding="utf-8"))
         except Exception:
             old_hashes = {}
     new_hashes = {}
@@ -100,11 +115,13 @@ def export_tiddlers(dry_run: bool = False):
 
     for file in get_all_files():
         rel = str(file.relative_to(ROOT_DIR))
-        content = file.read_text(encoding='utf-8', errors='replace')
+        content = file.read_text(encoding="utf-8", errors="replace")
         h = calc_hash(content)
         new_hashes[rel] = h
+
         if old_hashes.get(rel) == h:
             continue
+
         # Datos del tiddler
         title = safe_title(file)
         tags = tag_mapper.get_tags_for_file(file)
@@ -115,33 +132,32 @@ def export_tiddlers(dry_run: bool = False):
             f"```{lang}\n{content}\n```"
         )
         tiddler = {
-            'title': title,
-            'text': text_md,
-            'tags': ' '.join(tags),
-            'type': 'text/markdown',
-            'created': datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S%f')[:17],
-            'modified': datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S%f')[:17]
+            "title": title,
+            "text": text_md,
+            "tags": " ".join(tags),
+            "type": "text/markdown",
+            "created": datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S%f")[:17],
+            "modified": datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S%f")[:17]
         }
         out = OUTPUT_DIR / f"{title}.json"
+
         if dry_run:
             safe_print(f"[dry-run] {rel}")
         else:
-            out.write_text(json.dumps(tiddler, ensure_ascii=False, indent=2), encoding='utf-8')
+            out.write_text(json.dumps(tiddler, ensure_ascii=False, indent=2), encoding="utf-8")
             safe_print(f"Exported: {rel}")
+
         changed.append(rel)
 
     if not dry_run:
-        HASH_FILE.write_text(json.dumps(new_hashes, indent=2), encoding='utf-8')
+        HASH_FILE.write_text(json.dumps(new_hashes, indent=2), encoding="utf-8")
 
-    # Utilizar safe_print para evitar errores en consola
+    # Reporte final
     safe_print(f"\nTotal cambios: {len(changed)}")
     for c in changed:
         safe_print(f"  - {c}")
 
 
-if __name__ == '__main__':
-    import sys
-    dry = '--dry-run' in sys.argv
+if __name__ == "__main__":
+    dry = "--dry-run" in sys.argv
     export_tiddlers(dry_run=dry)
-
-# Fin del código

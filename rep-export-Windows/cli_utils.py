@@ -9,11 +9,14 @@ Utilidades comunes para scripts CLI:
 - `get_additional_args` → Parsear argumentos libres del usuario.
 - `confirm_overwrite`   → Confirmar sobreescritura de archivos existentes.
 - `safe_print`     → Imprime mensajes evitando errores de codificación (emojis).
+- `load_ignore_spec` → Carga y compila patrones de `.gitignore`.
+- `is_ignored`     → Verifica si una ruta debe ser ignorada según `.gitignore`.
 """
 import subprocess
 import sys
 from pathlib import Path
 from typing import List, Tuple, Optional
+from pathspec import PathSpec
 
 
 def safe_print(message: str) -> None:
@@ -72,3 +75,31 @@ def confirm_overwrite(path: Path) -> bool:
     if path.exists():
         return prompt_yes_no(f"El archivo '{path.name}' ya existe. ¿Sobrescribir?", default=False)
     return True
+
+
+def load_ignore_spec(repo_root: Path) -> PathSpec:
+    """
+    Carga y compila los patrones de `.gitignore` desde el directorio raíz.
+    Devuelve un PathSpec usable para match_file(path).
+    """
+    gitignore_path = repo_root / ".gitignore"
+    if not gitignore_path.exists():
+        return PathSpec.from_lines("gitwildmatch", [])
+
+    lines = []
+    with gitignore_path.open("r", encoding="utf-8") as f:
+        for line in f:
+            ln = line.strip()
+            if not ln or ln.startswith('#'):
+                continue
+            lines.append(ln)
+    return PathSpec.from_lines("gitwildmatch", lines)
+
+
+def is_ignored(path: Path, repo_root: Path, ignore_spec: PathSpec) -> bool:
+    """
+    Verifica si una ruta debe ser ignorada por `.gitignore`.
+    Path debe ser relativo o absoluto dentro de repo_root.
+    """
+    rel = str(path.relative_to(repo_root))
+    return ignore_spec.match_file(rel)
