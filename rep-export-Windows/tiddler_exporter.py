@@ -5,13 +5,13 @@ Plataforma: Windows
 
 Este script recorre los archivos del repositorio y crea archivos JSON (tiddlers) para TiddlyWiki.
 Mejoras:
-- Ignora patrones de .gitignore (salvo `estructura.txt`, `.gitignore` y archivos .toml).
-- Exporta solo archivos con extensión válida, nombres especiales o excepciones.
+- Ignora patrones de .gitignore (salvo `estructura.txt` y `.gitignore`).
+- Exporta solo archivos con extensión válida o nombres especiales, incluyendo `.toml`.
 - Detecta cambios usando hashes para exportar únicamente archivos modificados.
 - Añade tags semánticos con `tag_mapper.get_tags_for_file`:
-  * Tag basado en nombre (`-[ruta_con_underscores]`).
-  * Tag de grupo `--- Codigo` (sin emoji).
-  * Etiqueta de tipo de código con emoji (⚙️ CSS, ⚙️ Python, etc.).
+  * Tag basado en ruta (`-[ruta_con_underscores]`).
+  * Tag de grupo `--- Codigo`.
+  * Etiqueta de tipo de código con emoji (⚙️ Python, ⚙️ TOML, etc.).
 - Genera bloque Markdown con syntax highlighting adecuado.
 - Soporta `--dry-run` para simulación.
 
@@ -19,84 +19,69 @@ Uso:
   python rep-export-Windows/tiddler_exporter.py [--dry-run]
 """
 import os
+import sys
 import json
 import hashlib
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 import tag_mapper
-from cli_utils import load_ignore_spec, is_ignored
-
+from tag_mapper import load_ignore_spec
+from cli_utils import safe_print
 
 # ===== Configuración =====
-ROOT_DIR     = Path(__file__).resolve().parents[1]
-SCRIPT_DIR   = Path(__file__).parent
-OUTPUT_DIR   = SCRIPT_DIR / "tiddlers-export"
-HASH_FILE    = SCRIPT_DIR / ".hashes.json"
-IGNORE_SPEC  = tag_mapper.load_ignore_spec(ROOT_DIR)
+ROOT_DIR = Path(__file__).resolve().parents[1]
+SCRIPT_DIR = Path(__file__).parent
+OUTPUT_DIR = SCRIPT_DIR / "tiddlers-export"
+HASH_FILE = SCRIPT_DIR / ".hashes.json"
+# Carga spec de .gitignore
+IGNORE_SPEC = load_ignore_spec(ROOT_DIR)
 
-# Extensiones y nombres válidos
-VALID_EXT    = set(tag_mapper.EXTENSION_TAG_MAP.keys())
-VALID_EXT.add(".toml")  # ➕ Soporte para archivos .toml
+# Extensiones válidas: mapea etiquetas y agrega .toml
+VALID_EXT = set(tag_mapper.EXTENSION_TAG_MAP.keys()) | {'.toml'}
 ALLOWED_NAMES = set(tag_mapper.SPECIAL_FILENAMES.keys())
-ALLOWED_NAMES.update({".gitignore", "estructura.txt"})  # ➕ Excepciones
 
-# ===========================
+# ============================
 def get_all_files():
     """
     Genera todos los archivos a exportar:
-    - Siempre incluye 'estructura.txt', '.gitignore' y *.toml.
+    - Siempre incluye 'estructura.txt' y '.gitignore'.
     - Excluye archivos según .gitignore.
-    - Filtra por extensiones o nombres especiales.
+    - Filtra por extensiones válidas o nombres especiales.
     """
     for dirpath, dirnames, filenames in os.walk(ROOT_DIR):
-        # Evitar directorios internos
-        dirnames[:] = [
-            d for d in dirnames
-            if d not in ("tiddler_tag_doc", "tiddlers-export")
-        ]
+        # Evitar directorios de export/data
+        dirnames[:] = [d for d in dirnames if d not in ('tiddlers-export', 'tiddler_tag_doc')]
         for name in filenames:
             path = Path(dirpath) / name
-            rel = path.relative_to(ROOT_DIR)
-            rel_str = str(rel)
-
-            # 1) Excepciones absolutas: siempre exportar
-            if rel_str == "estructura.txt" or rel_str == ".gitignore" or path.suffix.lower() == ".toml":
+            rel = str(path.relative_to(ROOT_DIR))
+            # Siempre incluir estos
+            if rel in ('estructura.txt', '.gitignore'):
                 yield path
                 continue
-
-            # 2) Patrón .gitignore
-            if IGNORE_SPEC.match_file(rel_str):
+            # Skip según .gitignore
+            if IGNORE_SPEC and IGNORE_SPEC.match_file(rel):
                 continue
-
-            # 3) Extensiones y nombres permitidos
+            # Extensiones y nombres permitidos
             if path.suffix.lower() in VALID_EXT or name in ALLOWED_NAMES:
                 yield path
 
-
-def calc_hash(text: str) -> str:
-    return hashlib.sha1(text.encode("utf-8")).hexdigest()
-
+def calc_hash(content: str) -> str:
+    return hashlib.sha1(content.encode('utf-8')).hexdigest()
 
 def safe_title(path: Path) -> str:
     """
     Convierte ruta en título: prefijo '-' y '_' en lugar de separadores.
     """
-    return "-" + str(path.relative_to(ROOT_DIR)).replace(os.sep, "_")
+    return '-' + str(path.relative_to(ROOT_DIR)).replace(os.sep, '_')
 
 
 def detect_language(path: Path) -> str:
-    return tag_mapper.detect_language(path)
-
-
-def safe_print(message: str):
-    """Imprime evitando errores de codificación en consolas que no soportan algunos caracteres."""
-    try:
-        print(message)
-    except UnicodeEncodeError:
-        filtered = message.encode(sys.stdout.encoding or "utf-8", errors="ignore") \
-                          .decode(sys.stdout.encoding or "utf-8")
-        print(filtered)
+    """
+    Detecta lenguaje para syntax highlighting.
+    """
+    ext = path.suffix.lower().lstrip('.')
+    # Toml, Python, etc.
+    return tag_mapper.EXTENSION_TAG_MAP.get(path.suffix.lower(), ext)
 
 
 def export_tiddlers(dry_run: bool = False):
@@ -104,10 +89,11 @@ def export_tiddlers(dry_run: bool = False):
     Exporta tiddlers JSON para archivos modificados.
     """
     OUTPUT_DIR.mkdir(exist_ok=True)
+    # Carga hashes previos
     old_hashes = {}
     if HASH_FILE.exists():
         try:
-            old_hashes = json.loads(HASH_FILE.read_text(encoding="utf-8"))
+            old_hashes = json.loads(HASH_FILE.read_text(encoding='utf-8'))
         except Exception:
             old_hashes = {}
     new_hashes = {}
@@ -115,14 +101,14 @@ def export_tiddlers(dry_run: bool = False):
 
     for file in get_all_files():
         rel = str(file.relative_to(ROOT_DIR))
-        content = file.read_text(encoding="utf-8", errors="replace")
+        try:
+            content = file.read_text(encoding='utf-8', errors='replace')
+        except Exception:
+            continue
         h = calc_hash(content)
         new_hashes[rel] = h
-
         if old_hashes.get(rel) == h:
             continue
-
-        # Datos del tiddler
         title = safe_title(file)
         tags = tag_mapper.get_tags_for_file(file)
         lang = detect_language(file)
@@ -132,25 +118,23 @@ def export_tiddlers(dry_run: bool = False):
             f"```{lang}\n{content}\n```"
         )
         tiddler = {
-            "title": title,
-            "text": text_md,
-            "tags": " ".join(tags),
-            "type": "text/markdown",
-            "created": datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S%f")[:17],
-            "modified": datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S%f")[:17]
+            'title': title,
+            'text': text_md,
+            'tags': ' '.join(tags),
+            'type': 'text/markdown',
+            'created': datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S%f')[:17],
+            'modified': datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S%f')[:17]
         }
         out = OUTPUT_DIR / f"{title}.json"
-
         if dry_run:
             safe_print(f"[dry-run] {rel}")
         else:
-            out.write_text(json.dumps(tiddler, ensure_ascii=False, indent=2), encoding="utf-8")
+            out.write_text(json.dumps(tiddler, ensure_ascii=False, indent=2), encoding='utf-8')
             safe_print(f"Exported: {rel}")
-
         changed.append(rel)
 
     if not dry_run:
-        HASH_FILE.write_text(json.dumps(new_hashes, indent=2), encoding="utf-8")
+        HASH_FILE.write_text(json.dumps(new_hashes, indent=2), encoding='utf-8')
 
     # Reporte final
     safe_print(f"\nTotal cambios: {len(changed)}")
@@ -158,6 +142,7 @@ def export_tiddlers(dry_run: bool = False):
         safe_print(f"  - {c}")
 
 
-if __name__ == "__main__":
-    dry = "--dry-run" in sys.argv
+if __name__ == '__main__':
+    dry = '--dry-run' in sys.argv
+    module_path = Path(__file__).parents[1] / "rep-export-Windows" / "tiddler_exporter.py"
     export_tiddlers(dry_run=dry)
