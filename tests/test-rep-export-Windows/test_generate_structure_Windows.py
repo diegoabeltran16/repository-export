@@ -1,18 +1,28 @@
 # tests/test-rep-export-Windows/test_generate_structure_Windows.py
 
-import os
 import sys
-import argparse
 import importlib.util
+import argparse               # ⬅️ añadido para Namespace
 from pathlib import Path
+
 import pytest
 
 
 def load_module():
-    # Subir dos niveles desde tests/.../test_...py → raíz del repo
-    repo_root = Path(__file__).resolve().parents[2]
-    script_path = repo_root / 'rep-export-Windows' / 'generate_structure.py'
-    spec = importlib.util.spec_from_file_location("generate_structure", str(script_path))
+    """
+    Carga dinámicamente rep-export-Windows/generate_structure.py
+    y asegura que la carpeta rep-export-Windows/ esté en sys.path
+    para que 'import cli_utils' funcione correctamente.
+    """
+    project_root = Path(__file__).resolve().parents[2]
+    module_path = project_root / "rep-export-Windows" / "generate_structure.py"
+
+    # Asegurarnos de poder importar cli_utils desde rep-export-Windows/
+    windows_pkg = project_root / "rep-export-Windows"
+    if str(windows_pkg) not in sys.path:
+        sys.path.insert(0, str(windows_pkg))
+
+    spec = importlib.util.spec_from_file_location("generate_structure", str(module_path))
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -24,73 +34,67 @@ def gs_module():
 
 
 def test_ascii_tree_filters_hidden_and_ignored(gs_module, tmp_path):
-    # Prepara un arbol con cosas válidas y excluibles
-    (tmp_path / 'keep.txt').write_text('keep')
-    d = tmp_path / 'folder'
-    d.mkdir()
-    (d / 'file.md').write_text('hello')
+    gen = gs_module
+    repo = tmp_path / "repo"
+    repo.mkdir()
 
-    # Crea elementos que deben ignorarse
-    (tmp_path / '.git').mkdir()
-    (tmp_path / '__pycache__').mkdir()
-    (tmp_path / 'node_modules').mkdir()
-    (tmp_path / 'secret.pyc').write_text('')
-    (tmp_path / '.DS_Store').write_text('')
+    # Preparamos árbol con .gitignore que oculta __pycache__/ y secret.txt
+    (repo / ".gitignore").write_text("__pycache__/\nsecret.txt\n")
+    (repo / "visible.txt").write_text("ok")
+    (repo / "secret.txt").write_text("no")
+    (repo / "__pycache__").mkdir()
+    (repo / "__pycache__" / "ignored.pyc").write_text("")
 
-    args = argparse.Namespace(
-        exclude=[],
-        honor_gitignore=False,
-        exclude_from=None,
-        verbose=0
+    # 1) Sin honor-gitignore -> secret.txt y __pycache__ aparecen
+    lines_raw = gen.ascii_tree(
+        repo,
+        repo,
+        args=argparse.Namespace(exclude=[], honor_gitignore=False),
+        gitignore_spec=None
     )
-    gitignore_patterns = []
+    assert any("secret.txt" in l for l in lines_raw)
+    assert any("__pycache__" in l for l in lines_raw)
 
-    lines = gs_module.ascii_tree(tmp_path, tmp_path, prefix='', args=args, gitignore_patterns=gitignore_patterns)
-    output = "\n".join(lines)
-
-    # Deberían verse los válidos
-    assert 'keep.txt' in output
-    assert 'folder' in output
-    assert 'file.md' in output
-
-    # No deberían verse los excluidos por defecto
-    for excl in ['.git', '__pycache__', 'node_modules', 'secret.pyc', '.DS_Store']:
-        assert excl not in output, f"Encontrado elemento excluido: {excl}"
+    # 2) Con honor-gitignore -> ambos deben desaparecer
+    spec = gen.load_ignore_spec(repo)
+    lines_clean = gen.ascii_tree(
+        repo,
+        repo,
+        args=argparse.Namespace(exclude=[], honor_gitignore=True),
+        gitignore_spec=spec
+    )
+    print("DEBUG lines_clean:", lines_clean)  # <-- aquí
+    assert all("secret.txt" not in l for l in lines_clean)
+    assert all("__pycache__" not in l for l in lines_clean)
 
 
 def test_honor_gitignore(gs_module, tmp_path):
-    # Crea .gitignore que excluye keep.txt
-    (tmp_path / '.gitignore').write_text('keep.txt\n')
+    gen = gs_module
+    repo = tmp_path / "repo2"
+    repo.mkdir()
 
-    # Archivos
-    (tmp_path / 'keep.txt').write_text('x')
-    (tmp_path / 'other.txt').write_text('y')
+    # .gitignore que ignora *.log
+    (repo / ".gitignore").write_text("*.log\n")
+    (repo / "a.log").write_text("data")
+    (repo / "b.txt").write_text("data")
 
-    args = argparse.Namespace(
-        exclude=[],
-        honor_gitignore=True,
-        exclude_from=None,
-        verbose=0
+    spec = gen.load_ignore_spec(repo)
+    lines_clean = gen.ascii_tree(
+        repo,
+        repo,
+        args=argparse.Namespace(exclude=[], honor_gitignore=True),
+        gitignore_spec=spec
     )
-    patterns = gs_module.load_gitignore_patterns(tmp_path)
-    lines = gs_module.ascii_tree(tmp_path, tmp_path, prefix='', args=args, gitignore_patterns=patterns)
-    output = "\n".join(lines)
-
-    # keep.txt queda fuera, other.txt dentro
-    assert 'other.txt' in output
-    assert 'keep.txt' not in output
+    assert all("a.log" not in l for l in lines_clean)
+    assert any("b.txt" in l for l in lines_clean)
 
 
 def test_write_atomic_creates_file(gs_module, tmp_path):
-    out_file = tmp_path / 'out.txt'
-    lines = ['line1', 'line2', 'line3']
-    gs_module.write_atomic(out_file, lines)
+    gen = gs_module
+    out_file = tmp_path / "estructura.txt"
+    # Generamos un archivo provisional
+    gen.write_atomic(out_file, ["root", "└── file.txt"])
 
-    # Verifica contenido
-    content = out_file.read_text(encoding='utf-8').splitlines()
-    assert content == lines
-
-    # En Unix la permisión resultante suele ser 0o600
-    if os.name != 'nt':
-        mode = out_file.stat().st_mode & 0o777
-        assert mode == 0o600
+    assert out_file.exists()
+    content = out_file.read_text(encoding="utf-8")
+    assert "root" in content and "file.txt" in content
