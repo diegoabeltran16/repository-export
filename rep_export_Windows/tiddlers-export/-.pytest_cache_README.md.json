@@ -1,0 +1,8 @@
+{
+  "title": "-.pytest_cache_README.md",
+  "text": "## [[Tags]]\n[[⚙️ Markdown]] [[-.pytest_cache_README.md]] [[--- Codigo]]\n\n```markdown\n# pytest cache directory #\n\nThis directory contains data from the pytest's cache plugin,\nwhich provides the `--lf` and `--ff` options, as well as the `cache` fixture.\n\n**Do not** commit this to version control.\n\nSee [the docs](https://docs.pytest.org/en/stable/how-to/cache.html) for more information.\n\n```",
+  "tags": "[[⚙️ Markdown]] [[-.pytest_cache_README.md]] [[--- Codigo]]",
+  "type": "text/markdown",
+  "created": "20250609134240598",
+  "modified": "20250609134240598"
+}

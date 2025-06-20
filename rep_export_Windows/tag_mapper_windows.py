@@ -1,27 +1,29 @@
 #!/usr/bin/env python3
 """
-📦 Módulo: tag_mapper.py — Linux/macOS alineado a Windows
-🎯 Plataforma: Linux / macOS
+📦 Módulo: tag_mapper.py (Windows)
+🎯 Plataforma: Windows
 
 Función:
-- Asigna tags semánticos a cada archivo del repositorio.
-- Orden de precedencia:
-  1. Tags personalizados desde JSON en `tiddler_tag_doc/`.
-  2. Tag derivado por extensión o nombre especial, con emoji ⚙️.
-  3. Fallback `--- 🧬 Por Clasificar`.
-- Además provee:
-  - `load_ignore_spec(repo_root)` para interpretar `.gitignore`.
-  - `detect_language(path)` para syntax highlighting.
+Genera tags semánticos para archivos del repositorio.
+Orden de precedencia:
+1. Tags personalizados desde JSON en `tiddler_tag_doc/`.
+2. Tag derivado por extensión o nombre especial.
+3. Fallback `--- 🧬 Por Clasificar`.
+
+También provee:
+- `load_ignore_spec(repo_root)` para interpretar `.gitignore`.
+- `detect_language(file_path)` para syntax highlighting.
 
 Salida:
-- `List[str]` con tags en sintaxis TiddlyWiki (`[[Tag]]`).
+List[str] con tags en sintaxis TiddlyWiki (`[[TagName]]`).
 """
 import json
 import os
 from pathlib import Path
 from typing import List, Dict, Any
+from cli_utils_Windows import load_ignore_spec, is_ignored
 
-# Intentar importar pathspec para .gitignore
+# Intentar importar pathspec para respetar .gitignore
 try:
     import pathspec  # type: ignore
 except ImportError:
@@ -31,6 +33,8 @@ except ImportError:
 # Rutas y carga de JSON personalizados
 # ========================================
 TIDDLER_TAG_DIR = Path(__file__).resolve().parent / "tiddler_tag_doc"
+
+# Mapa de título a tags personalizados
 title_to_tags: Dict[str, List[str]] = {}
 if TIDDLER_TAG_DIR.is_dir():
     for json_file in sorted(TIDDLER_TAG_DIR.glob("*.json")):
@@ -46,7 +50,7 @@ if TIDDLER_TAG_DIR.is_dir():
             print(f"⚠️ Error leyendo {json_file.name}: {e}")
 
 # ========================================
-# Mapeo extensión → Tag y nombres especiales
+# Mapeo extensión → Tag
 # ========================================
 EXTENSION_TAG_MAP: Dict[str, str] = {
     # Code
@@ -55,18 +59,16 @@ EXTENSION_TAG_MAP: Dict[str, str] = {
     ".rb": "Ruby", ".php": "PHP", ".kt": "Kotlin", ".swift": "Swift",
     # Scripting
     ".sh": "Shell", ".bash": "Shell", ".ps1": "PowerShell", ".bat": "Batch",
-    # Markup / data
-    ".md": "Markdown", ".rst": "Markdown", ".html": "HTML", ".css": "CSS",
-    ".json": "JSON", ".yml": "YAML", ".yaml": "YAML", ".toml": "TOML",
-    ".csv": "CSV", ".xml": "XML", ".sql": "SQL", ".txt": "Text"
+    # Markup/data
+    ".md": "Markdown", ".html": "HTML", ".css": "CSS", ".xml": "XML",
+    ".json": "JSON", ".yml": "YAML", ".yaml": "YAML", ".txt": "Text"
 }
 
 SPECIAL_FILENAMES: Dict[str, str] = {
     "Dockerfile": "Dockerfile",
     "Makefile": "Makefile",
     "README": "README",
-    "LICENSE": "License",
-    ".gitignore": "Git"
+    "LICENSE": "License"
 }
 
 DEFAULT_TAG = "--- 🧬 Por Clasificar"
@@ -76,14 +78,15 @@ DEFAULT_TAG = "--- 🧬 Por Clasificar"
 # ========================================
 def load_ignore_spec(repo_root: Path) -> Any:
     """
-    Retorna un PathSpec para ignorar según .gitignore.
-    Si pathspec no está disponible, no ignora nada.
+    Retorna un PathSpec para ignorar rutas según .gitignore.
+    Si pathspec no está disponible, nunca ignora nada.
     """
     if pathspec:
         gitignore = repo_root / '.gitignore'
         if gitignore.is_file():
             patterns = gitignore.read_text(encoding='utf-8').splitlines()
             return pathspec.PathSpec.from_lines('gitwildmatch', patterns)
+    # Dummy spec que no ignora
     class DummySpec:
         def match_file(self, file_path: str) -> bool:
             return False
@@ -99,8 +102,11 @@ HIGHLIGHT_MAP: Dict[str, str] = {
 }
 
 SPECIAL_HIGHLIGHT: Dict[str, str] = {
-    '.gitignore': 'gitignore', 'Dockerfile': 'dockerfile', 'Makefile': 'makefile',
-    'README': 'markdown', 'LICENSE': 'text'
+    '.gitignore': 'gitignore',
+    'Dockerfile': 'dockerfile',
+    'Makefile': 'makefile',
+    'README': 'markdown',
+    'LICENSE': 'text'
 }
 
 # ========================================
@@ -125,11 +131,11 @@ def get_tags_for_file(file_path: Path) -> List[str]:
     except Exception:
         title = '-' + file_path.name
 
-    # 1) Tags personalizados
+    # Cargar tags personalizados si existen
     if title in title_to_tags:
         tags = title_to_tags[title].copy()
     else:
-        # 2) Derivar tag de tipo con emoji
+        # Derivar tag de tipo con emoji
         name = file_path.name
         ext = file_path.suffix.lower()
         if name in SPECIAL_FILENAMES:
@@ -143,16 +149,24 @@ def get_tags_for_file(file_path: Path) -> List[str]:
         else:
             tags = [f"[[⚙️ {base}]]"]
 
-    # 3) Tag basado en título (sin emoji)
+    # Tag basado en nombre de archivo (sin emoji)
     tags.append(f"[[{title}]]")
-    # 4) Tag de grupo sin emoji
+    # Tag de grupo sin emoji
     tags.append("[[--- Codigo]]")
 
     return tags
 
-# CLI de prueba
-if __name__ == '__main__':
+def alguna_funcion():
+    from tag_mapper_windows import get_tags_for_file
+    # ...usa get_tags_for_file aquí...
+
+# CLI para pruebas rápidas
+if __name__ == "__main__":
     import sys
-    for arg in sys.argv[1:]:
-        p = Path(arg)
-        print(p, '->', get_tags_for_file(p))
+    if len(sys.argv) < 2:
+        print("Uso: python tag_mapper.py <ruta_archivo>")
+        sys.exit(1)
+    result = get_tags_for_file(Path(sys.argv[1]))
+    print(result)
+# Fin del código
+# Fin del módulo tag_mapper.py

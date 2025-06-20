@@ -53,7 +53,7 @@ python3 rep-export-LINUXandMAC/scripts/export_structure_wrapper_unix.py
 ### Windows
 
 ```bash
-python rep-export-Windows/scripts/export_structure_wrapper_windows.py
+python rep_export_Windows\scripts_windows\export_structure_wrapper_windows.py
 ```
 6. Revisa la carpeta \tiddlers-export que debio crearse automaticamente , alli encontraras los tiddlers convertidos en formato .JSON
 

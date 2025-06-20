@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-📦 Módulo: tag_mapper.py (Windows)
-🎯 Plataforma: Windows
+📦 Módulo: tag_mapper_UNIX.py (Linux/macOS)
+🎯 Plataforma: Linux / macOS
 
 Función:
 Genera tags semánticos para archivos del repositorio.
@@ -60,14 +60,16 @@ EXTENSION_TAG_MAP: Dict[str, str] = {
     ".sh": "Shell", ".bash": "Shell", ".ps1": "PowerShell", ".bat": "Batch",
     # Markup/data
     ".md": "Markdown", ".html": "HTML", ".css": "CSS", ".xml": "XML",
-    ".json": "JSON", ".yml": "YAML", ".yaml": "YAML", ".txt": "Text"
+    ".json": "JSON", ".yml": "YAML", ".yaml": "YAML", ".toml": "TOML",
+    ".csv": "CSV", ".sql": "SQL", ".txt": "Text"
 }
 
 SPECIAL_FILENAMES: Dict[str, str] = {
     "Dockerfile": "Dockerfile",
     "Makefile": "Makefile",
     "README": "README",
-    "LICENSE": "License"
+    "LICENSE": "License",
+    ".gitignore": "Git"
 }
 
 DEFAULT_TAG = "--- 🧬 Por Clasificar"
@@ -119,7 +121,6 @@ def detect_language(file_path: Path) -> str:
         return SPECIAL_HIGHLIGHT[name]
     return HIGHLIGHT_MAP.get(file_path.suffix.lower(), 'text')
 
-
 def get_tags_for_file(file_path: Path) -> List[str]:
     """Devuelve lista de tags TiddlyWiki para `file_path`."""
     # Construir título basado en ruta
@@ -159,9 +160,7 @@ def get_tags_for_file(file_path: Path) -> List[str]:
 if __name__ == "__main__":
     import sys
     if len(sys.argv) < 2:
-        print("Uso: python tag_mapper.py <ruta_archivo>")
+        print("Uso: python tag_mapper_UNIX.py <ruta_archivo>")
         sys.exit(1)
     result = get_tags_for_file(Path(sys.argv[1]))
     print(result)
-# Fin del código
-# Fin del módulo tag_mapper.py

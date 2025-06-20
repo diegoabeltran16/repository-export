@@ -1,11 +1,15 @@
 # tests/test-rep-export-Windows/test_generate_structure_Windows.py
 
 import sys
-import importlib.util
-import argparse               # ⬅️ añadido para Namespace
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "rep_export_Windows"))
+
+import importlib.util
+import argparse               # ⬅️ añadido para Namespace
+
 import pytest
+from cli_utils_Windows import load_ignore_spec, is_ignored
 
 
 def load_module():
@@ -15,7 +19,7 @@ def load_module():
     para que 'import cli_utils' funcione correctamente.
     """
     project_root = Path(__file__).resolve().parents[2]
-    module_path = project_root / "rep-export-Windows" / "generate_structure.py"
+    module_path = project_root / "rep_export_Windows" / "generate_structure_windows.py"
 
     # Asegurarnos de poder importar cli_utils desde rep-export-Windows/
     windows_pkg = project_root / "rep-export-Windows"
@@ -45,7 +49,7 @@ def test_ascii_tree_filters_hidden_and_ignored(gs_module, tmp_path):
     (repo / "__pycache__").mkdir()
     (repo / "__pycache__" / "ignored.pyc").write_text("")
 
-    # 1) Sin honor-gitignore -> secret.txt y __pycache__ aparecen
+    # 1) Sin honor-gitignore -> secret.txt aparece, __pycache__ NO aparece
     lines_raw = gen.ascii_tree(
         repo,
         repo,
@@ -53,7 +57,7 @@ def test_ascii_tree_filters_hidden_and_ignored(gs_module, tmp_path):
         gitignore_spec=None
     )
     assert any("secret.txt" in l for l in lines_raw)
-    assert any("__pycache__" in l for l in lines_raw)
+    assert all("__pycache__" not in l for l in lines_raw)
 
     # 2) Con honor-gitignore -> ambos deben desaparecer
     spec = gen.load_ignore_spec(repo)

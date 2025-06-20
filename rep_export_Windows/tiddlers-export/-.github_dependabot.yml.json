@@ -1,0 +1,8 @@
+{
+  "title": "-.github_dependabot.yml",
+  "text": "## [[Tags]]\n[[⚙️ YAML]] [[-.github_dependabot.yml]] [[--- Codigo]]\n\n```yaml\nversion: 2\n\nupdates:\n  - package-ecosystem: \"pip\"\n    directory: \"/\"                # donde vive tu pyproject.toml\n    schedule:\n      interval: \"daily\"\n      time: \"02:00\"               # hora UTC\n    open-pull-requests-limit: 5\n\n    # Grupos válidos (solo se permiten 'patterns' y/o 'exclude')\n    groups:\n      security-updates:\n        patterns:\n          - \"*\"\n      routine-updates:\n        patterns:\n          - \"*\"\n        exclude:\n          - \"pip\"                 # evita PRs para pip en sí mismo\n\n```",
+  "tags": "[[⚙️ YAML]] [[-.github_dependabot.yml]] [[--- Codigo]]",
+  "type": "text/markdown",
+  "created": "20250609134240595",
+  "modified": "20250609134240595"
+}
