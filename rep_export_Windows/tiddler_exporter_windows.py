@@ -24,9 +24,8 @@ import json
 import hashlib
 from datetime import datetime, timezone
 from pathlib import Path
-import tag_mapper
-from tag_mapper import load_ignore_spec
-from cli_utils import safe_print
+import tag_mapper_windows as tag_mapper
+from cli_utils_Windows import safe_print, load_ignore_spec, is_ignored
 
 # ===== Configuración =====
 ROOT_DIR = Path(__file__).resolve().parents[1]

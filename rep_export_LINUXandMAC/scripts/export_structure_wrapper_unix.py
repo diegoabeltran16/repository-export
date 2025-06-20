@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-🤖 Asistente interactivo de exportación para Windows
-Ubicación: rep-export-Windows/scripts/export_structure_wrapper_windows.py
+🤖 Asistente interactivo de exportación para Linux/macOS
+Ubicación: rep-export-LINUXandMAC/scripts/export_structure_wrapper_unix.py
 
 Guía paso a paso para:
  1) Generar estructura ASCII
@@ -10,7 +10,7 @@ Guía paso a paso para:
  4) Mostrar ayuda
  5) Salir
 
-Utiliza `cli_utils.py` para:
+Utiliza `cli_utils_UNIX.py` para:
 - prompt_yes_no, confirm_overwrite
 - run_cmd con salida detallada
 - get_additional_args
@@ -19,9 +19,9 @@ Utiliza `cli_utils.py` para:
 import sys
 from pathlib import Path
 
-# Incluir carpeta padre en path para importar cli_utils
+# Incluir carpeta padre para importar cli_utils
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from cli_utils import (
+from rep_export_LINUXandMAC.cli_utils_UNIX import (
     prompt_yes_no,
     run_cmd,
     get_additional_args,
@@ -32,7 +32,7 @@ from cli_utils import (
 
 def show_help():
     safe_print(__doc__)
-    safe_print("Ejemplo: opción 3 ejecuta los dos pasos en secuencia.")
+    safe_print("Ejemplo: opción 3 ejecuta ambos pasos en secuencia.")
 
 
 def get_menu_choice() -> str:
@@ -45,8 +45,8 @@ def get_menu_choice() -> str:
 
 def main():
     base = Path(__file__).resolve().parent.parent
-    struct = base / 'generate_structure.py'
-    export = base / 'tiddler_exporter.py'
+    struct = base / 'generate_structure_UNIX.py'
+    export = base / 'tiddler_exporter_UNIX.py'
 
     # Verificar scripts
     missing = [s for s in (struct, export) if not s.is_file()]
@@ -76,12 +76,13 @@ def main():
             args = []
             if prompt_yes_no("¿Excluir patrones de .gitignore? (no oculta .gitignore)", default=False):
                 args.append('--honor-gitignore')
-            args += get_additional_args('generate_structure.py')
+            args += get_additional_args('generate_structure_UNIX.py')
             out_name = input("Nombre de salida [estructura.txt]: ").strip() or 'estructura.txt'
             out_path = base / out_name
             if confirm_overwrite(out_path):
-                args += ['--output', out_name]
-                code, _, _ = run_cmd([sys.executable, str(struct)] + args, cwd=base)
+                args += ['--output', out_name, '--force']
+                safe_print("⏳ Generando estructura, esto puede tardar unos segundos...")
+                code, _, _ = run_cmd([sys.executable, str(struct), '-v'] + args, cwd=base)
                 if code != 0:
                     if prompt_yes_no("Error al generar. Volver al menú?", default=True):
                         continue
@@ -95,7 +96,7 @@ def main():
             exp_args = []
             if prompt_yes_no("¿Simulación (dry-run)?", default=False):
                 exp_args.append('--dry-run')
-            exp_args += get_additional_args('tiddler_exporter.py')
+            exp_args += get_additional_args('tiddler_exporter_UNIX.py')
             code, _, _ = run_cmd([sys.executable, str(export)] + exp_args, cwd=base)
             if code != 0:
                 if prompt_yes_no("Error al exportar. Volver al menú?", default=True):

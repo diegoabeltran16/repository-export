@@ -1,24 +1,25 @@
-# tests/test-rep-export-Windows/test_tiddler_exporter.py
-
 import sys
-import importlib.util
 from pathlib import Path
-import json
-import pytest
-from cli_utils_Windows import load_ignore_spec, is_ignored
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "rep_export_Windows"))
 
 project_root = Path(__file__).resolve().parents[2]
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
 windows_dir = project_root / "rep-export-Windows"
 linuxmac_dir = project_root / "rep_export_LINUXandMAC"
 
-if str(linuxmac_dir) in sys.path:
-    sys.path.remove(str(linuxmac_dir))
+if str(windows_dir) in sys.path:
+    sys.path.remove(str(windows_dir))
 if "cli_utils" in sys.modules:
     del sys.modules["cli_utils"]
-if str(windows_dir) not in sys.path:
-    sys.path.insert(0, str(windows_dir))
+if str(linuxmac_dir) not in sys.path:
+    sys.path.insert(0, str(linuxmac_dir))
+
+import tag_mapper_UNIX
+import importlib.util
+import json
+import pytest
+from cli_utils_UNIX import load_ignore_spec, is_ignored
 
 
 @pytest.fixture
@@ -35,7 +36,8 @@ def tiddler_exporter(tmp_path, monkeypatch):
     (repo_dir / "config.toml").write_text("[project]\nname = 'test'")
 
     # Redefinir ROOT_DIR para apuntar al repo falso
-    module_path = Path(__file__).resolve().parents[2] / "rep_export_Windows" / "tiddler_exporter_windows.py"
+    project_root = Path(__file__).resolve().parents[2]
+    module_path = project_root / "rep_export_LINUXandMAC" / "tiddler_exporter_UNIX.py"
     spec = importlib.util.spec_from_file_location("tiddler_exporter", str(module_path))
     mod = importlib.util.module_from_spec(spec)
     sys.modules["tiddler_exporter"] = mod
@@ -47,13 +49,11 @@ def tiddler_exporter(tmp_path, monkeypatch):
 
     return mod
 
-
 def test_gitignore_excludes_secret_files(tiddler_exporter):
     tiddler_exporter.export_tiddlers(dry_run=False)
     out_dir = tiddler_exporter.OUTPUT_DIR
     files = [f.name for f in out_dir.glob("*.json")]
     assert all("secret" not in f for f in files), "Archivo ignorado fue exportado por error."
-
 
 def test_always_include_estructura_and_gitignore(tiddler_exporter):
     tiddler_exporter.export_tiddlers(dry_run=False)
@@ -61,7 +61,6 @@ def test_always_include_estructura_and_gitignore(tiddler_exporter):
     expected = ["-estructura.txt.json", "-.gitignore.json"]
     for name in expected:
         assert name in files, f"{name} debería estar presente siempre."
-
 
 def test_toml_files_are_exported(tiddler_exporter):
     tiddler_exporter.export_tiddlers(dry_run=False)

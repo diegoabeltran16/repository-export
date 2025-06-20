@@ -1,0 +1,8 @@
+{
+  "title": "-.gitignore",
+  "text": "## [[Tags]]\n[[--- 🧬 Por Clasificar]] [[-.gitignore]] [[--- Codigo]]\n\n```\n/__pycache__\nrep-export-LINUXandMAC\\__pycache__\n# Ignore Python cache files\n\n\n# Estructura\nestructura.txt\n\nrep-export-LINUXandMAC/.hashes.json\nrep-export-LINUXandMAC/tiddlers-export\n\nrep-export-Windows/tiddlers-export\nrep-export-Windows/.hashes.json\n\n# Python backend for club management\n__pycache__/\n__pycache__\n*.py[cod]      # Python compiled files\n*$py.class\n*.so\n.Python\nenv/\n.env           # Where database passwords are stored\nvenv/          # Virtual environment for testing\n.venv\n\n# Teacher IDE settings\n.vscode/       # Ms. Rodriguez uses VS Code\n.idea/         # Mr. Chen uses PyCharm\n\n# Local development & testing\ninstance/\n.pytest_cache/\n.coverage      # Test coverage reports\nhtmlcov/\n\n# Staff computer files\n.DS_Store      # For teachers with Macs\nThumbs.db      # For teachers with Windows\n\nvenv\nvenv/\n.venv\n.venv/\n\nrepository_export.egg-info\n\nsecret.txt\n\n# Ignore IDE and editor specific files\n.vscode\n.vscode/\nvscode\n```",
+  "tags": "[[--- 🧬 Por Clasificar]] [[-.gitignore]] [[--- Codigo]]",
+  "type": "text/markdown",
+  "created": "20250620153254406",
+  "modified": "20250620153254406"
+}

@@ -53,15 +53,18 @@ def run_cmd(cmd: List[str], cwd: Optional[Path] = None) -> Tuple[int, str, str]:
         stderr:   Salida de error capturada
     """
     safe_print(f"\n▶️ Ejecutando: {' '.join(cmd)}\n")
-    proc = subprocess.Popen(cmd, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    out, err = proc.communicate()
-    if out:
-        safe_print(out)
-    if proc.returncode != 0:
-        safe_print(f"❌ Error (code {proc.returncode}) al ejecutar: {cmd[0]}")
-        if err:
-            safe_print(f"📋 stderr:\n{err}")
-    return proc.returncode, out, err
+    process = subprocess.Popen(
+        cmd,
+        cwd=cwd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1
+    )
+    for line in process.stdout:
+        print(line, end='')  # Muestra cada línea en tiempo real
+    process.wait()
+    return process.returncode, None, None
 
 
 def get_additional_args(script_name: str) -> List[str]:
@@ -77,29 +80,34 @@ def confirm_overwrite(path: Path) -> bool:
     return True
 
 
-def load_ignore_spec(repo_root: Path) -> PathSpec:
+def load_ignore_spec(repo_root: Path):
     """
     Carga y compila los patrones de `.gitignore` desde el directorio raíz.
     Devuelve un PathSpec usable para match_file(path).
     """
-    gitignore_path = repo_root / ".gitignore"
-    if not gitignore_path.exists():
-        return PathSpec.from_lines("gitwildmatch", [])
-
-    lines = []
-    with gitignore_path.open("r", encoding="utf-8") as f:
-        for line in f:
-            ln = line.strip()
-            if not ln or ln.startswith('#'):
-                continue
-            lines.append(ln)
-    return PathSpec.from_lines("gitwildmatch", lines)
+    gitignore = repo_root / '.gitignore'
+    if not gitignore.is_file():
+        return None
+    lines = [
+        ln.strip() for ln in gitignore.read_text(encoding='utf-8').splitlines()
+        if ln.strip() and not ln.strip().startswith('#')
+    ]
+    if not lines:
+        return None
+    return PathSpec.from_lines('gitwildmatch', lines)
 
 
-def is_ignored(path: Path, repo_root: Path, ignore_spec: PathSpec) -> bool:
+def is_ignored(path: Path, ignore_spec):
     """
     Verifica si una ruta debe ser ignorada por `.gitignore`.
     Path debe ser relativo o absoluto dentro de repo_root.
     """
-    rel = str(path.relative_to(repo_root))
+    if ignore_spec is None:
+        return False
+    rel = str(path)
     return ignore_spec.match_file(rel)
+
+
+def alguna_funcion():
+    from tag_mapper_windows import get_tags_for_file
+    # ...usa get_tags_for_file aquí...

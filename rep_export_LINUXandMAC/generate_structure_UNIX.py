@@ -3,18 +3,15 @@
 Script: generate_structure.py
 Plataformas objetivo: Linux y macOS
 
-Este script genera un archivo `estructura.txt` que muestra el árbol completo
+Genera un archivo `estructura.txt` que muestra el árbol completo
 filtrado del repositorio usando solo caracteres ASCII y codificado en UTF-8.
 Admite exclusiones sensibles y respetar .gitignore, así como ejecución en "dry-run".
 
 Uso:
-  python3 generate_structure.py [--root PATH] [--output PATH]
+  python3 generate_structure.py [--output PATH]
                                [--honor-gitignore]
-                               [-e PATTERN ...] [--exclude-from FILE]
+                               [-e PATRON ...] [--exclude-from FILE]
                                [--dry-run] [-v]
-
-Ejemplo:
-  python3 generate_structure.py --honor-gitignore -e node_modules -e '*.log' --dry-run
 """
 import os
 import sys
@@ -22,61 +19,67 @@ import argparse
 import logging
 import tempfile
 from pathlib import Path
-import fnmatch
+from pathspec import PathSpec
+from fnmatch import fnmatch
 
 # Exclusiones por defecto
 IGNORED_DIRS = {
-    '.git', '.svn', '.hg', '.idea', '__pycache__', 'node_modules',
-    'dist', 'build', 'venv', '.mypy_cache'
+    '.git', '.svn', '.hg', '.idea', 'node_modules',
+    'dist', 'build', 'venv', '.mypy_cache', '__pycache__'
 }
 IGNORED_FILES = {'.DS_Store'}
 IGNORED_EXT = {
     '.pyc', '.class', '.o', '.exe', '.dll', '.so', '.dylib', '.pdb'
 }
 
+ALWAYS_EXCLUDE = {
+    '.env', 'secret.env', '*.key', '*.pem', '*.crt', '*.p12', '*.db', '*.sqlite', '*.pyc',
+    '__pycache__/', '__pycache__/*', '.vscode/', '.vscode/*', '.idea/', '.idea/*', '.DS_Store',
+    'node_modules/', 'node_modules/*', 'dist/', 'dist/*', 'build/', 'build/*', 'venv/', 'venv/*',
+    '.mypy_cache/', '.mypy_cache/*', '.git/', '.git/*'
+}
 
-def load_gitignore_patterns(repo_root: Path):
-    """Carga patrones desde .gitignore"""
-    patterns = []
+
+def load_ignore_spec(repo_root: Path):
+    """Carga PathSpec desde .gitignore si existe."""
     gitignore = repo_root / '.gitignore'
-    if gitignore.is_file():
-        for line in gitignore.read_text(encoding='utf-8').splitlines():
-            line = line.strip()
-            if not line or line.startswith('#'):
-                continue
-            patterns.append(line)
-    return patterns
+    if not gitignore.is_file():
+        return None
+    lines = [
+        ln.strip() for ln in gitignore.read_text(encoding='utf-8').splitlines()
+        if ln.strip() and not ln.strip().startswith('#')
+    ]
+    if not lines:
+        return None
+    return PathSpec.from_lines('gitwildmatch', lines)
 
 
-def matches_pattern(path: Path, patterns, repo_root: Path):
-    rel = str(path.relative_to(repo_root))
-    return any(fnmatch.fnmatch(rel, pat) for pat in patterns)
-
-
-def should_skip(path: Path, repo_root: Path, exclude_patterns, honor_gitignore, gitignore_patterns):
-    name = path.name
-    if name in IGNORED_DIRS or name in IGNORED_FILES:
-        return True
-    if path.suffix.lower() in IGNORED_EXT:
-        return True
-    # Ocultos (excepto .gitignore)
-    if name.startswith('.') and name != '.gitignore':
-        return True
-    # Patrones extra
-    if exclude_patterns and matches_pattern(path, exclude_patterns, repo_root):
-        return True
-    # Patrones de .gitignore
-    if honor_gitignore and gitignore_patterns and matches_pattern(path, gitignore_patterns, repo_root):
+def should_skip(path: Path, repo_root: Path, exclude_patterns, honor_gitignore: bool, ignore_spec: PathSpec):
+    rel = path.relative_to(repo_root).as_posix()
+    if path.is_dir() and not rel.endswith('/'):
+        rel += '/'
+    # .gitignore
+    if honor_gitignore and ignore_spec and ignore_spec.match_file(rel):
         # Excepciones: siempre incluir .gitignore y estructura.txt
-        rel = str(path.relative_to(repo_root))
         if rel in ('.gitignore', 'estructura.txt'):
             return False
+        return True
+    # Patrones extra (glob)
+    all_patterns = list(exclude_patterns) + list(ALWAYS_EXCLUDE)
+    if any(fnmatch(rel, pat) for pat in all_patterns):
+        logging.info(f"Excluyendo por patrón: {rel}")
+        return True
+    # Ocultos (excepto .gitignore y .github)
+    if path.name.startswith('.') and path.name not in {'.gitignore', '.github'}:
         return True
     return False
 
 
-def ascii_tree(root: Path, repo_root: Path, prefix='', args=None, gitignore_patterns=None):
+def ascii_tree(root: Path, repo_root: Path, prefix='', args=None, ignore_spec=None):
     """Construye lista de líneas con árbol ASCII filtrado"""
+    exclude_patterns = getattr(args, 'exclude', []) or []
+    honor_gitignore = getattr(args, 'honor_gitignore', False)
+
     lines = []
     try:
         entries = sorted(root.iterdir(), key=lambda p: p.name.lower())
@@ -86,7 +89,7 @@ def ascii_tree(root: Path, repo_root: Path, prefix='', args=None, gitignore_patt
 
     entries = [
         e for e in entries
-        if not should_skip(e, repo_root, args.exclude, args.honor_gitignore, gitignore_patterns)
+        if not should_skip(e, repo_root, exclude_patterns, honor_gitignore, ignore_spec)
     ]
 
     for idx, entry in enumerate(entries):
@@ -94,14 +97,12 @@ def ascii_tree(root: Path, repo_root: Path, prefix='', args=None, gitignore_patt
         lines.append(f"{prefix}{connector}{entry.name}")
         if entry.is_dir() and not entry.is_symlink():
             extension = '    ' if idx == len(entries) - 1 else '│   '
-            lines += ascii_tree(entry, repo_root, prefix + extension, args, gitignore_patterns)
-
+            lines += ascii_tree(entry, repo_root, prefix + extension, args, ignore_spec)
     return lines
 
 
 def write_atomic(path: Path, lines):
     """Escribe de forma atómica reemplazando el archivo destino."""
-    # Crear temporal en la misma carpeta para evitar cross-device errors
     tmp = tempfile.NamedTemporaryFile(
         'w',
         delete=False,
@@ -110,18 +111,13 @@ def write_atomic(path: Path, lines):
     )
     with tmp:
         tmp.write('\n'.join(lines))
-    tmp_path = Path(tmp.name)
-    tmp_path.replace(path)
+    Path(tmp.name).replace(path)
     logging.info(f"Estructura escrita en {path}")
 
 
 def parse_args():
     p = argparse.ArgumentParser(
         description="Genera un árbol ASCII del proyecto con exclusiones de privacidad."
-    )
-    p.add_argument(
-        '--root', type=Path,
-        help="Ruta raíz del proyecto (por defecto: repo root)"
     )
     p.add_argument(
         '--output', '-o', type=Path, default=Path('estructura.txt'),
@@ -147,6 +143,7 @@ def parse_args():
         '-v', '--verbose', action='count', default=0,
         help="Aumenta nivel de detalle en logs"
     )
+    p.add_argument('--force', '-f', action='store_true', help="Sobrescribir sin preguntar.")
     return p.parse_args()
 
 
@@ -155,13 +152,10 @@ def main():
     level = logging.WARNING - (10 * args.verbose)
     logging.basicConfig(level=level, format='[%(levelname)s] %(message)s')
 
-    repo_root = args.root or Path(__file__).resolve().parents[1]
+    repo_root = Path(__file__).resolve().parent
     os.chdir(repo_root)
 
-    gitignore_patterns = (
-        load_gitignore_patterns(repo_root)
-        if args.honor_gitignore else []
-    )
+    ignore_spec = load_ignore_spec(repo_root) if args.honor_gitignore else None
 
     if args.exclude_from and args.exclude_from.is_file():
         extra = [
@@ -174,7 +168,7 @@ def main():
     logging.info(f"Generando estructura desde {repo_root}")
     lines = ascii_tree(
         repo_root, repo_root, prefix='',
-        args=args, gitignore_patterns=gitignore_patterns
+        args=args, ignore_spec=ignore_spec
     )
 
     if args.dry_run:
@@ -183,6 +177,13 @@ def main():
         return
 
     output_path = args.output if args.output.is_absolute() else repo_root / args.output
+
+    if output_path.exists() and not args.force:
+        resp = input(f"El archivo '{output_path.name}' ya existe. ¿Sobrescribir? [s/N]: ").strip().lower()
+        if resp not in ('s', 'y', 'si', 'yes'):
+            print("Operación cancelada por el usuario.")
+            return
+
     write_atomic(output_path, lines)
     print(f"\n📂 Estructura exportada a: {output_path}")
 

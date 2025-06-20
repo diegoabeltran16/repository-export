@@ -46,3 +46,8 @@ venv/
 repository_export.egg-info
 
 secret.txt
+
+# Ignore IDE and editor specific files
+.vscode
+.vscode/
+vscode
