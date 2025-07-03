@@ -1,8 +1,19 @@
 {
   "title": "-.github_workflows_python-tests.yml",
-  "text": "## [[Tags]]\n[[⚙️ YAML]] [[-.github_workflows_python-tests.yml]] [[--- Codigo]]\n\n```YAML\nname: CI - Run Tests\n\non:\n  push:\n    branches: [ main, master ]\n  pull_request:\n    branches: [ main, master ]\n\npermissions:\n  contents: read\n\njobs:\n  test:\n    name: Run all tests\n    runs-on: ${{ matrix.os }}\n    strategy:\n      matrix:\n        os: [ ubuntu-latest, windows-latest ]\n        python-version: [ '3.9', '3.10', '3.11' ]\n\n    steps:\n      # 1) Checkout código\n      - name: Checkout repository\n        uses: actions/checkout@v4\n\n      # 2) Configurar Python\n      - name: Set up Python ${{ matrix.python-version }}\n        uses: actions/setup-python@v4\n        with:\n          python-version: ${{ matrix.python-version }}\n          cache: pip\n\n      # 3) Instalar proyecto + extras (dev, gitignore)\n      - name: Install project with dev & gitignore extras\n        run: |\n          python -m pip install --upgrade pip\n          # Instala en editable con extras; incluye pytest y pathspec\n          pip install \".[dev,gitignore]\"\n\n      # 4) Ejecutar tests\n      - name: Run pytest\n        run: pytest tests --maxfail=1 --disable-warnings -q\n\n```",
-  "tags": "[[⚙️ YAML]] [[-.github_workflows_python-tests.yml]] [[--- Codigo]]",
-  "type": "text/markdown",
-  "created": "20250619220233443",
-  "modified": "20250619220233443"
+  "text": "RELATIONS:\n{\n  \"parte_de\": [\n    \"--- Codigo\",\n    \".github\"\n  ]\n}\n\n```YAML\nname: CI - Run Tests\n\non:\n  push:\n    branches: [ main, master ]\n  pull_request:\n    branches: [ main, master ]\n\npermissions:\n  contents: read\n\njobs:\n  test:\n    name: Run all tests\n    runs-on: ${{ matrix.os }}\n    strategy:\n      matrix:\n        os: [ ubuntu-latest, windows-latest ]\n        python-version: [ '3.9', '3.10', '3.11' ]\n\n    steps:\n      # 1) Checkout código\n      - name: Checkout repository\n        uses: actions/checkout@v4\n\n      # 2) Configurar Python\n      - name: Set up Python ${{ matrix.python-version }}\n        uses: actions/setup-python@v4\n        with:\n          python-version: ${{ matrix.python-version }}\n          cache: pip\n\n      # 3) Instalar proyecto + extras (dev, gitignore)\n      - name: Install project with dev & gitignore extras\n        run: |\n          python -m pip install --upgrade pip\n          # Instala en editable con extras; incluye pytest y pathspec\n          pip install \".[dev,gitignore]\"\n\n      # 4) Ejecutar tests\n      - name: Run pytest\n        run: pytest tests --maxfail=1 --disable-warnings -q\n\n```",
+  "type": "text",
+  "tags": "[[⚙️ YAML]] [[-.github_workflows_python-tests.yml]] [[--- Codigo]] [[parte_de:--- Codigo]] [[parte_de:.github]]",
+  "tags_list": [
+    "[[⚙️ YAML]]",
+    "[[-.github_workflows_python-tests.yml]]",
+    "[[--- Codigo]]",
+    "[[parte_de:--- Codigo]]",
+    "[[parte_de:.github]]"
+  ],
+  "relations": {
+    "parte_de": [
+      "--- Codigo",
+      ".github"
+    ]
+  }
 }

@@ -1,8 +1,21 @@
 {
   "title": "-pyproject.toml",
-  "text": "## [[Tags]]\n[[--- 🧬 Por Clasificar]] [[-pyproject.toml]] [[--- Codigo]]\n\n```text\n[build-system]\nrequires = [\"setuptools>=61.0\"]\nbuild-backend = \"setuptools.build_meta\"\n\n[project]\nname = \"repository-export\"\nversion = \"0.3.0\"  # bump por integración de .gitignore\ndescription = \"Automatiza la creación de documentación semántica desde repositorios de código, generando tiddlers para TiddlyWiki.\"\nreadme = \"README.md\"\nrequires-python = \">=3.7\"\nauthors = [\n  { name = \"Diego Beltrán\", email = \"tu.email@example.com\" }\n]\ndependencies = []\n\nclassifiers = [\n  \"Development Status :: 4 - Beta\",\n  \"Intended Audience :: Developers\",\n  \"Topic :: Software Development :: Documentation\",\n  \"License :: OSI Approved :: Apache Software License\",\n  \"Programming Language :: Python :: 3.7\",\n  \"Programming Language :: Python :: 3.8\",\n  \"Programming Language :: Python :: 3.9\",\n  \"Programming Language :: Python :: 3.10\",\n  \"Programming Language :: Python :: 3.11\",\n  \"Operating System :: OS Independent\"\n]\n\n[project.urls]\n\"Home\" = \"https://github.com/diegoabeltran16/repository-export\"\n\"Repository\" = \"https://github.com/diegoabeltran16/repository-export\"\n\"License\" = \"https://github.com/diegoabeltran16/repository-export/blob/main/LICENSE\"\n\n[project.optional-dependencies]\ndev        = [\"pytest\"]\ncli        = [\"rich\"]\ngitignore  = [\"pathspec>=0.10.1\"]  # para soportar carga de .gitignore\n\n[tool.setuptools.packages.find]\nwhere = [\".\"]\n\n```",
-  "tags": "[[--- 🧬 Por Clasificar]] [[-pyproject.toml]] [[--- Codigo]]",
-  "type": "text/markdown",
-  "created": "20250619203152401",
-  "modified": "20250619203152401"
+  "text": "RELATIONS:\n{\n  \"parte_de\": [\n    \"--- Codigo\"\n  ],\n  \"define\": [\n    \"pyproject.toml\"\n  ]\n}\n\n```toml\n[build-system]\nrequires = [\"setuptools>=61.0\"]\nbuild-backend = \"setuptools.build_meta\"\n\n[project]\nname = \"repository-export\"\nversion = \"0.3.0\"  # bump por integración de .gitignore\ndescription = \"Automatiza la creación de documentación semántica desde repositorios de código, generando tiddlers para TiddlyWiki.\"\nreadme = \"README.md\"\nrequires-python = \">=3.7\"\nauthors = [\n  { name = \"Diego Beltrán\", email = \"tu.email@example.com\" }\n]\ndependencies = []\n\nclassifiers = [\n  \"Development Status :: 4 - Beta\",\n  \"Intended Audience :: Developers\",\n  \"Topic :: Software Development :: Documentation\",\n  \"License :: OSI Approved :: Apache Software License\",\n  \"Programming Language :: Python :: 3.7\",\n  \"Programming Language :: Python :: 3.8\",\n  \"Programming Language :: Python :: 3.9\",\n  \"Programming Language :: Python :: 3.10\",\n  \"Programming Language :: Python :: 3.11\",\n  \"Operating System :: OS Independent\"\n]\n\n[project.urls]\n\"Home\" = \"https://github.com/diegoabeltran16/repository-export\"\n\"Repository\" = \"https://github.com/diegoabeltran16/repository-export\"\n\"License\" = \"https://github.com/diegoabeltran16/repository-export/blob/main/LICENSE\"\n\n[project.optional-dependencies]\ndev        = [\"pytest\"]\ncli        = [\"rich\"]\ngitignore  = [\"pathspec>=0.10.1\"]  # para soportar carga de .gitignore\n\n[tool.setuptools.packages.find]\nwhere = [\".\"]\n\n```",
+  "type": "text",
+  "tags": "[[--- 🧬 Por Clasificar]] [[-pyproject.toml]] [[--- Codigo]] [[parte_de:--- Codigo]] [[define:pyproject.toml]]",
+  "tags_list": [
+    "[[--- 🧬 Por Clasificar]]",
+    "[[-pyproject.toml]]",
+    "[[--- Codigo]]",
+    "[[parte_de:--- Codigo]]",
+    "[[define:pyproject.toml]]"
+  ],
+  "relations": {
+    "parte_de": [
+      "--- Codigo"
+    ],
+    "define": [
+      "pyproject.toml"
+    ]
+  }
 }

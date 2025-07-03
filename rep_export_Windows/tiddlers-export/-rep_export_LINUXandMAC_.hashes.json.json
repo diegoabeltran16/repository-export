@@ -1,8 +1,23 @@
 {
   "title": "-rep_export_LINUXandMAC_.hashes.json",
-  "text": "## [[Tags]]\n[[⚙️ JSON]] [[-rep_export_LINUXandMAC_.hashes.json]] [[--- Codigo]]\n\n```JSON\n\n```",
-  "tags": "[[⚙️ JSON]] [[-rep_export_LINUXandMAC_.hashes.json]] [[--- Codigo]]",
-  "type": "text/markdown",
-  "created": "20250620153254435",
-  "modified": "20250620153254435"
+  "text": "RELATIONS:\n{\n  \"parte_de\": [\n    \"--- Codigo\",\n    \"rep_export_LINUXandMAC\"\n  ],\n  \"define\": [\n    \".hashes.json\"\n  ]\n}\n\n```JSON\n\n```",
+  "type": "text",
+  "tags": "[[⚙️ JSON]] [[-rep_export_LINUXandMAC_.hashes.json]] [[--- Codigo]] [[parte_de:--- Codigo]] [[parte_de:rep_export_LINUXandMAC]] [[define:.hashes.json]]",
+  "tags_list": [
+    "[[⚙️ JSON]]",
+    "[[-rep_export_LINUXandMAC_.hashes.json]]",
+    "[[--- Codigo]]",
+    "[[parte_de:--- Codigo]]",
+    "[[parte_de:rep_export_LINUXandMAC]]",
+    "[[define:.hashes.json]]"
+  ],
+  "relations": {
+    "parte_de": [
+      "--- Codigo",
+      "rep_export_LINUXandMAC"
+    ],
+    "define": [
+      ".hashes.json"
+    ]
+  }
 }
