@@ -51,3 +51,17 @@ secret.txt
 .vscode
 .vscode/
 vscode
+
+CI_CD_docs
+.CI_CD_docs
+.CI_CD_docs/
+
+rep_export_Windows\tiddler_tag_doc_windows
+.rep_export_Windows\tiddler_tag_doc_windows
+.rep_export_Windows\tiddler_tag_doc_windows/
+
+rep_export_Windows\tiddlers-export
+.rep_export_Windows\tiddlers-export
+.rep_export_Windows\tiddlers-export/
+
+rep_export_Windows\.hashes.json

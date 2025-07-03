@@ -1,8 +1,45 @@
 {
   "title": "-rep_export_Windows_cli_utils_Windows.py",
-  "text": "## [[Tags]]\n[[⚙️ Python]] [[-rep_export_Windows_cli_utils_Windows.py]] [[--- Codigo]]\n\n```Python\n#!/usr/bin/env python3\n\"\"\"\nMódulo: cli_utils.py\nUbicación: rep-export-Windows/\n\nUtilidades comunes para scripts CLI:\n- `prompt_yes_no`  → Preguntas sí/no con valor por defecto.\n- `run_cmd`        → Ejecutar subprocesos con captura de stdout, stderr y código.\n- `get_additional_args` → Parsear argumentos libres del usuario.\n- `confirm_overwrite`   → Confirmar sobreescritura de archivos existentes.\n- `safe_print`     → Imprime mensajes evitando errores de codificación (emojis).\n- `load_ignore_spec` → Carga y compila patrones de `.gitignore`.\n- `is_ignored`     → Verifica si una ruta debe ser ignorada según `.gitignore`.\n\"\"\"\nimport subprocess\nimport sys\nfrom pathlib import Path\nfrom typing import List, Tuple, Optional\nfrom pathspec import PathSpec\n\n\ndef safe_print(message: str) -> None:\n    \"\"\"Imprime evitando errores de codificación en consolas con encoding limitado.\"\"\"\n    try:\n        print(message)\n    except UnicodeEncodeError:\n        encoding = sys.stdout.encoding or 'utf-8'\n        filtered = message.encode(encoding, errors='ignore').decode(encoding)\n        print(filtered)\n\n\ndef prompt_yes_no(question: str, default: bool = False) -> bool:\n    \"\"\"Pregunta interactiva sí/no con valor por defecto.\"\"\"\n    default_str = 'S/n' if default else 's/N'\n    while True:\n        resp = input(f\"{question} [{default_str}]: \").strip().lower()\n        if not resp:\n            return default\n        if resp in ('s', 'si', 'y', 'yes'):\n            return True\n        if resp in ('n', 'no'):\n            return False\n        safe_print(\"❗ Respuesta inválida. Usa 's' o 'n'.\")\n\n\ndef run_cmd(cmd: List[str], cwd: Optional[Path] = None) -> Tuple[int, str, str]:\n    \"\"\"\n    Ejecuta un comando externo y captura salida.\n\n    Returns:\n        exit_code: Código de salida del proceso\n        stdout:   Salida estándar capturada\n        stderr:   Salida de error capturada\n    \"\"\"\n    safe_print(f\"\\n▶️ Ejecutando: {' '.join(cmd)}\\n\")\n    process = subprocess.Popen(\n        cmd,\n        cwd=cwd,\n        stdout=subprocess.PIPE,\n        stderr=subprocess.STDOUT,\n        text=True,\n        bufsize=1\n    )\n    for line in process.stdout:\n        print(line, end='')  # Muestra cada línea en tiempo real\n    process.wait()\n    return process.returncode, None, None\n\n\ndef get_additional_args(script_name: str) -> List[str]:\n    \"\"\"Solicita argumentos adicionales para un script (retorna lista).\"\"\"\n    extras = input(f\"Argumentos extra para {script_name} (separados por espacios), o Enter para ninguno: \").strip()\n    return extras.split() if extras else []\n\n\ndef confirm_overwrite(path: Path) -> bool:\n    \"\"\"Verifica si el usuario acepta sobrescribir el archivo si ya existe.\"\"\"\n    if path.exists():\n        return prompt_yes_no(f\"El archivo '{path.name}' ya existe. ¿Sobrescribir?\", default=False)\n    return True\n\n\ndef load_ignore_spec(repo_root: Path):\n    \"\"\"\n    Carga y compila los patrones de `.gitignore` desde el directorio raíz.\n    Devuelve un PathSpec usable para match_file(path).\n    \"\"\"\n    gitignore = repo_root / '.gitignore'\n    if not gitignore.is_file():\n        return None\n    lines = [\n        ln.strip() for ln in gitignore.read_text(encoding='utf-8').splitlines()\n        if ln.strip() and not ln.strip().startswith('#')\n    ]\n    if not lines:\n        return None\n    return PathSpec.from_lines('gitwildmatch', lines)\n\n\ndef is_ignored(path: Path, ignore_spec):\n    \"\"\"\n    Verifica si una ruta debe ser ignorada por `.gitignore`.\n    Path debe ser relativo o absoluto dentro de repo_root.\n    \"\"\"\n    if ignore_spec is None:\n        return False\n    rel = str(path)\n    return ignore_spec.match_file(rel)\n\n\ndef alguna_funcion():\n    from tag_mapper_windows import get_tags_for_file\n    # ...usa get_tags_for_file aquí...\n\n```",
-  "tags": "[[⚙️ Python]] [[-rep_export_Windows_cli_utils_Windows.py]] [[--- Codigo]]",
-  "type": "text/markdown",
-  "created": "20250620153254445",
-  "modified": "20250620153254445"
+  "text": "RELATIONS:\n{\n  \"parte_de\": [\n    \"--- Codigo\",\n    \"rep_export_Windows\"\n  ],\n  \"usa\": [\n    \"List\",\n    \"Optional\",\n    \"Path\",\n    \"PathSpec\",\n    \"Tuple\",\n    \"get_tags_for_file\",\n    \"pathlib\",\n    \"pathspec\",\n    \"subprocess\",\n    \"sys\",\n    \"tag_mapper_windows\",\n    \"typing\"\n  ]\n}\n\n```Python\n#!/usr/bin/env python3\n\"\"\"\nMódulo: cli_utils.py\nUbicación: rep-export-Windows/\n\nUtilidades comunes para scripts CLI:\n- `prompt_yes_no`  → Preguntas sí/no con valor por defecto.\n- `run_cmd`        → Ejecutar subprocesos con captura de stdout, stderr y código.\n- `get_additional_args` → Parsear argumentos libres del usuario.\n- `confirm_overwrite`   → Confirmar sobreescritura de archivos existentes.\n- `safe_print`     → Imprime mensajes evitando errores de codificación (emojis).\n- `load_ignore_spec` → Carga y compila patrones de `.gitignore`.\n- `is_ignored`     → Verifica si una ruta debe ser ignorada según `.gitignore`.\n\"\"\"\nimport subprocess\nimport sys\nfrom pathlib import Path\nfrom typing import List, Tuple, Optional\nfrom pathspec import PathSpec\n\n\ndef safe_print(message: str) -> None:\n    \"\"\"Imprime evitando errores de codificación en consolas con encoding limitado.\"\"\"\n    try:\n        print(message)\n    except UnicodeEncodeError:\n        encoding = sys.stdout.encoding or 'utf-8'\n        filtered = message.encode(encoding, errors='ignore').decode(encoding)\n        print(filtered)\n\n\ndef prompt_yes_no(question: str, default: bool = False) -> bool:\n    \"\"\"Pregunta interactiva sí/no con valor por defecto.\"\"\"\n    default_str = 'S/n' if default else 's/N'\n    while True:\n        resp = input(f\"{question} [{default_str}]: \").strip().lower()\n        if not resp:\n            return default\n        if resp in ('s', 'si', 'y', 'yes'):\n            return True\n        if resp in ('n', 'no'):\n            return False\n        safe_print(\"❗ Respuesta inválida. Usa 's' o 'n'.\")\n\n\ndef run_cmd(cmd: List[str], cwd: Optional[Path] = None) -> Tuple[int, str, str]:\n    \"\"\"\n    Ejecuta un comando externo y captura salida.\n\n    Returns:\n        exit_code: Código de salida del proceso\n        stdout:   Salida estándar capturada\n        stderr:   Salida de error capturada\n    \"\"\"\n    safe_print(f\"\\n▶️ Ejecutando: {' '.join(cmd)}\\n\")\n    process = subprocess.Popen(\n        cmd,\n        cwd=cwd,\n        stdout=subprocess.PIPE,\n        stderr=subprocess.STDOUT,\n        text=True,\n        bufsize=1\n    )\n    for line in process.stdout:\n        print(line, end='')  # Muestra cada línea en tiempo real\n    process.wait()\n    return process.returncode, None, None\n\n\ndef get_additional_args(script_name: str) -> List[str]:\n    \"\"\"Solicita argumentos adicionales para un script (retorna lista).\"\"\"\n    extras = input(f\"Argumentos extra para {script_name} (separados por espacios), o Enter para ninguno: \").strip()\n    return extras.split() if extras else []\n\n\ndef confirm_overwrite(path: Path) -> bool:\n    \"\"\"Verifica si el usuario acepta sobrescribir el archivo si ya existe.\"\"\"\n    if path.exists():\n        return prompt_yes_no(f\"El archivo '{path.name}' ya existe. ¿Sobrescribir?\", default=False)\n    return True\n\n\ndef load_ignore_spec(repo_root: Path):\n    \"\"\"\n    Carga y compila los patrones de `.gitignore` desde el directorio raíz.\n    Devuelve un PathSpec usable para match_file(path).\n    \"\"\"\n    gitignore = repo_root / '.gitignore'\n    if not gitignore.is_file():\n        return None\n    lines = [\n        ln.strip() for ln in gitignore.read_text(encoding='utf-8').splitlines()\n        if ln.strip() and not ln.strip().startswith('#')\n    ]\n    if not lines:\n        return None\n    return PathSpec.from_lines('gitwildmatch', lines)\n\n\ndef is_ignored(path: Path, ignore_spec):\n    \"\"\"\n    Verifica si una ruta debe ser ignorada por `.gitignore`.\n    Path debe ser relativo o absoluto dentro de repo_root.\n    \"\"\"\n    if ignore_spec is None:\n        return False\n    rel = str(path)\n    return ignore_spec.match_file(rel)\n\n\ndef alguna_funcion():\n    from tag_mapper_windows import get_tags_for_file\n    # ...usa get_tags_for_file aquí...\n\n```",
+  "type": "text",
+  "tags": "[[⚙️ Python]] [[-rep_export_Windows_cli_utils_Windows.py]] [[--- Codigo]] [[parte_de:--- Codigo]] [[parte_de:rep_export_Windows]] [[usa:List]] [[usa:Optional]] [[usa:Path]] [[usa:PathSpec]] [[usa:Tuple]] [[usa:get_tags_for_file]] [[usa:pathlib]] [[usa:pathspec]] [[usa:subprocess]] [[usa:sys]] [[usa:tag_mapper_windows]] [[usa:typing]]",
+  "tags_list": [
+    "[[⚙️ Python]]",
+    "[[-rep_export_Windows_cli_utils_Windows.py]]",
+    "[[--- Codigo]]",
+    "[[parte_de:--- Codigo]]",
+    "[[parte_de:rep_export_Windows]]",
+    "[[usa:List]]",
+    "[[usa:Optional]]",
+    "[[usa:Path]]",
+    "[[usa:PathSpec]]",
+    "[[usa:Tuple]]",
+    "[[usa:get_tags_for_file]]",
+    "[[usa:pathlib]]",
+    "[[usa:pathspec]]",
+    "[[usa:subprocess]]",
+    "[[usa:sys]]",
+    "[[usa:tag_mapper_windows]]",
+    "[[usa:typing]]"
+  ],
+  "relations": {
+    "parte_de": [
+      "--- Codigo",
+      "rep_export_Windows"
+    ],
+    "usa": [
+      "List",
+      "Optional",
+      "Path",
+      "PathSpec",
+      "Tuple",
+      "get_tags_for_file",
+      "pathlib",
+      "pathspec",
+      "subprocess",
+      "sys",
+      "tag_mapper_windows",
+      "typing"
+    ]
+  }
 }

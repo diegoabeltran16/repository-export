@@ -1,0 +1,41 @@
+{
+  "title": "-rep_export_LINUXandMAC_generate_structure_UNIX.py",
+  "text": "RELATIONS:\n{\n  \"parte_de\": [\n    \"--- Codigo\",\n    \"rep_export_LINUXandMAC\"\n  ],\n  \"usa\": [\n    \"Path\",\n    \"PathSpec\",\n    \"argparse\",\n    \"fnmatch\",\n    \"logging\",\n    \"os\",\n    \"pathlib\",\n    \"pathspec\",\n    \"sys\",\n    \"tempfile\"\n  ]\n}\n\n```Python\n#!/usr/bin/env python3\n\"\"\"\nScript: generate_structure.py\nPlataformas objetivo: Linux y macOS\n\nGenera un archivo `estructura.txt` que muestra el árbol completo\nfiltrado del repositorio usando solo caracteres ASCII y codificado en UTF-8.\nAdmite exclusiones sensibles y respetar .gitignore, así como ejecución en \"dry-run\".\n\nUso:\n  python3 generate_structure.py [--output PATH]\n                               [--honor-gitignore]\n                               [-e PATRON ...] [--exclude-from FILE]\n                               [--dry-run] [-v]\n\"\"\"\nimport os\nimport sys\nimport argparse\nimport logging\nimport tempfile\nfrom pathlib import Path\nfrom pathspec import PathSpec\nfrom fnmatch import fnmatch\n\n# Exclusiones por defecto\nIGNORED_DIRS = {\n    '.git', '.svn', '.hg', '.idea', 'node_modules',\n    'dist', 'build', 'venv', '.mypy_cache', '__pycache__'\n}\nIGNORED_FILES = {'.DS_Store'}\nIGNORED_EXT = {\n    '.pyc', '.class', '.o', '.exe', '.dll', '.so', '.dylib', '.pdb'\n}\n\nALWAYS_EXCLUDE = {\n    '.env', 'secret.env', '*.key', '*.pem', '*.crt', '*.p12', '*.db', '*.sqlite', '*.pyc',\n    '__pycache__/', '__pycache__/*', '.vscode/', '.vscode/*', '.idea/', '.idea/*', '.DS_Store',\n    'node_modules/', 'node_modules/*', 'dist/', 'dist/*', 'build/', 'build/*', 'venv/', 'venv/*',\n    '.mypy_cache/', '.mypy_cache/*', '.git/', '.git/*'\n}\n\n\ndef load_ignore_spec(repo_root: Path):\n    \"\"\"Carga PathSpec desde .gitignore si existe.\"\"\"\n    gitignore = repo_root / '.gitignore'\n    if not gitignore.is_file():\n        return None\n    lines = [\n        ln.strip() for ln in gitignore.read_text(encoding='utf-8').splitlines()\n        if ln.strip() and not ln.strip().startswith('#')\n    ]\n    if not lines:\n        return None\n    return PathSpec.from_lines('gitwildmatch', lines)\n\n\ndef should_skip(path: Path, repo_root: Path, exclude_patterns, honor_gitignore: bool, ignore_spec: PathSpec):\n    rel = path.relative_to(repo_root).as_posix()\n    if path.is_dir() and not rel.endswith('/'):\n        rel += '/'\n    # .gitignore\n    if honor_gitignore and ignore_spec and ignore_spec.match_file(rel):\n        # Excepciones: siempre incluir .gitignore y estructura.txt\n        if rel in ('.gitignore', 'estructura.txt'):\n            return False\n        return True\n    # Patrones extra (glob)\n    all_patterns = list(exclude_patterns) + list(ALWAYS_EXCLUDE)\n    if any(fnmatch(rel, pat) for pat in all_patterns):\n        logging.info(f\"Excluyendo por patrón: {rel}\")\n        return True\n    # Ocultos (excepto .gitignore y .github)\n    if path.name.startswith('.') and path.name not in {'.gitignore', '.github'}:\n        return True\n    return False\n\n\ndef ascii_tree(root: Path, repo_root: Path, prefix='', args=None, ignore_spec=None):\n    \"\"\"Construye lista de líneas con árbol ASCII filtrado\"\"\"\n    exclude_patterns = getattr(args, 'exclude', []) or []\n    honor_gitignore = getattr(args, 'honor_gitignore', False)\n\n    lines = []\n    try:\n        entries = sorted(root.iterdir(), key=lambda p: p.name.lower())\n    except PermissionError:\n        logging.warning(f\"Permiso denegado: {root}\")\n        return lines\n\n    entries = [\n        e for e in entries\n        if not should_skip(e, repo_root, exclude_patterns, honor_gitignore, ignore_spec)\n    ]\n\n    for idx, entry in enumerate(entries):\n        connector = '└── ' if idx == len(entries) - 1 else '├── '\n        lines.append(f\"{prefix}{connector}{entry.name}\")\n        if entry.is_dir() and not entry.is_symlink():\n            extension = '    ' if idx == len(entries) - 1 else '│   '\n            lines += ascii_tree(entry, repo_root, prefix + extension, args, ignore_spec)\n    return lines\n\n\ndef write_atomic(path: Path, lines):\n    \"\"\"Escribe de forma atómica reemplazando el archivo destino.\"\"\"\n    tmp = tempfile.NamedTemporaryFile(\n        'w',\n        delete=False,\n        encoding='utf-8',\n        dir=path.parent\n    )\n    with tmp:\n        tmp.write('\\n'.join(lines))\n    Path(tmp.name).replace(path)\n    logging.info(f\"Estructura escrita en {path}\")\n\n\ndef parse_args():\n    p = argparse.ArgumentParser(\n        description=\"Genera un árbol ASCII del proyecto con exclusiones de privacidad.\"\n    )\n    p.add_argument(\n        '--output', '-o', type=Path, default=Path('estructura.txt'),\n        help=\"Archivo de destino (por defecto: <root>/estructura.txt)\"\n    )\n    p.add_argument(\n        '--honor-gitignore', action='store_true',\n        help=\"Excluir patrones listados en .gitignore\"\n    )\n    p.add_argument(\n        '-e', '--exclude', action='append', default=[],\n        help=\"Patrón glob adicional a excluir (repetible)\"\n    )\n    p.add_argument(\n        '--exclude-from', type=Path,\n        help=\"Archivo con patrones glob a excluir (uno por línea)\"\n    )\n    p.add_argument(\n        '--dry-run', action='store_true',\n        help=\"Imprime árbol sin escribir archivo\"\n    )\n    p.add_argument(\n        '-v', '--verbose', action='count', default=0,\n        help=\"Aumenta nivel de detalle en logs\"\n    )\n    p.add_argument('--force', '-f', action='store_true', help=\"Sobrescribir sin preguntar.\")\n    return p.parse_args()\n\n\ndef main():\n    args = parse_args()\n    level = logging.WARNING - (10 * args.verbose)\n    logging.basicConfig(level=level, format='[%(levelname)s] %(message)s')\n\n    repo_root = Path(__file__).resolve().parent\n    os.chdir(repo_root)\n\n    ignore_spec = load_ignore_spec(repo_root) if args.honor_gitignore else None\n\n    if args.exclude_from and args.exclude_from.is_file():\n        extra = [\n            line.strip() for line in\n            args.exclude_from.read_text(encoding='utf-8').splitlines()\n            if line.strip() and not line.startswith('#')\n        ]\n        args.exclude.extend(extra)\n\n    logging.info(f\"Generando estructura desde {repo_root}\")\n    lines = ascii_tree(\n        repo_root, repo_root, prefix='',\n        args=args, ignore_spec=ignore_spec\n    )\n\n    if args.dry_run:\n        print('\\n'.join(lines))\n        logging.info(\"[dry-run] no se escribió archivo\")\n        return\n\n    output_path = args.output if args.output.is_absolute() else repo_root / args.output\n\n    if output_path.exists() and not args.force:\n        resp = input(f\"El archivo '{output_path.name}' ya existe. ¿Sobrescribir? [s/N]: \").strip().lower()\n        if resp not in ('s', 'y', 'si', 'yes'):\n            print(\"Operación cancelada por el usuario.\")\n            return\n\n    write_atomic(output_path, lines)\n    print(f\"\\n📂 Estructura exportada a: {output_path}\")\n\n\nif __name__ == '__main__':\n    main()\n\n```",
+  "type": "text",
+  "tags": "[[⚙️ Python]] [[-rep_export_LINUXandMAC_generate_structure_UNIX.py]] [[--- Codigo]] [[parte_de:--- Codigo]] [[parte_de:rep_export_LINUXandMAC]] [[usa:Path]] [[usa:PathSpec]] [[usa:argparse]] [[usa:fnmatch]] [[usa:logging]] [[usa:os]] [[usa:pathlib]] [[usa:pathspec]] [[usa:sys]] [[usa:tempfile]]",
+  "tags_list": [
+    "[[⚙️ Python]]",
+    "[[-rep_export_LINUXandMAC_generate_structure_UNIX.py]]",
+    "[[--- Codigo]]",
+    "[[parte_de:--- Codigo]]",
+    "[[parte_de:rep_export_LINUXandMAC]]",
+    "[[usa:Path]]",
+    "[[usa:PathSpec]]",
+    "[[usa:argparse]]",
+    "[[usa:fnmatch]]",
+    "[[usa:logging]]",
+    "[[usa:os]]",
+    "[[usa:pathlib]]",
+    "[[usa:pathspec]]",
+    "[[usa:sys]]",
+    "[[usa:tempfile]]"
+  ],
+  "relations": {
+    "parte_de": [
+      "--- Codigo",
+      "rep_export_LINUXandMAC"
+    ],
+    "usa": [
+      "Path",
+      "PathSpec",
+      "argparse",
+      "fnmatch",
+      "logging",
+      "os",
+      "pathlib",
+      "pathspec",
+      "sys",
+      "tempfile"
+    ]
+  }
+}

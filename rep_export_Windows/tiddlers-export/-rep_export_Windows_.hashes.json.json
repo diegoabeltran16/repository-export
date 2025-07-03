@@ -1,8 +1,23 @@
 {
   "title": "-rep_export_Windows_.hashes.json",
-  "text": "## [[Tags]]\n[[⚙️ JSON]] [[-rep_export_Windows_.hashes.json]] [[--- Codigo]]\n\n```JSON\n{\n  \".gitignore\": \"1101f2eeb72fb82cce50763867b8f376d192d3e7\",\n  \"estructura.txt\": \"d65bd0a6cc55cfa6cae9401f84f201ee5be83565\",\n  \"LICENSE\": \"7df059597099bb7dcf25d2a9aedfaf4465f72d8d\",\n  \"pyproject.toml\": \"dd84e4c1cee766d6dfa5cd4ccb3c116a80dc1b57\",\n  \"README.md\": \"a17e65fe4b1ccf04179a5daf7743a7ea05a833bc\",\n  \".github\\\\dependabot.yml\": \"e77e6853e4c539c4a0e069e1296a58f210f2776e\",\n  \".github\\\\workflows\\\\python-tests.yml\": \"9730497d1f2a777557442071f963f9eb79e88aa4\",\n  \"rep-export-LINUXandMAC\\\\cli_utils.py\": \"71034fc1ca217b9c3579e994e395c7103c376b2b\",\n  \"rep-export-LINUXandMAC\\\\generate_structure.py\": \"186a55efc9148504f84439c0b1673dc6cf3716b1\",\n  \"rep-export-LINUXandMAC\\\\tag_mapper.py\": \"d0d880fd8b5b31eb594efba5e2fbca61a5752f51\",\n  \"rep-export-LINUXandMAC\\\\tiddler_exporter.py\": \"5cc9f423791312f5b3d1362f184b05858d4fc027\",\n  \"rep-export-LINUXandMAC\\\\scripts\\\\export_structure_wrapper_unix.py\": \"787d0cd85f87d5677e64aa454cbd91a30e59616b\",\n  \"rep-export-Windows\\\\cli_utils.py\": \"f6900e7812a9748a58a8ee199ef6cb0c7830a786\",\n  \"rep-export-Windows\\\\generate_structure.py\": \"68eec21748c7b8a5c8a2ee7aff136b70742f4858\",\n  \"rep-export-Windows\\\\tag_mapper.py\": \"576500b7c53d3888f18e1b89825a2006c8381936\",\n  \"rep-export-Windows\\\\tiddler_exporter.py\": \"f1cbc7aeabc0071263b52965432e5510c7205141\",\n  \"rep-export-Windows\\\\scripts\\\\export_structure_wrapper_windows.py\": \"07b73eb643166ab3040dd197f7ba01b5b108a3cb\",\n  \"tests\\\\test-rep-export-LINUXandMAC\\\\test_generate_structure_LINUX&MAC.py\": \"ca20d40c668291de5e2a16145d32a213513e1574\",\n  \"tests\\\\test-rep-export-Windows\\\\test_generate_structure_Windows.py\": \"f6734b08e6d587c28455f9d0a39f1f740e7f210e\",\n  \"tests\\\\test-rep-export-Windows\\\\test_tiddler_exporter.py\": \"c77542318287af9e2a8b195e28c9f9dd2772eacd\"\n}\n```",
-  "tags": "[[⚙️ JSON]] [[-rep_export_Windows_.hashes.json]] [[--- Codigo]]",
-  "type": "text/markdown",
-  "created": "20250620153254444",
-  "modified": "20250620153254444"
+  "text": "RELATIONS:\n{\n  \"parte_de\": [\n    \"--- Codigo\",\n    \"rep_export_Windows\"\n  ],\n  \"define\": [\n    \".hashes.json\"\n  ]\n}\n\n```JSON\n{\n  \".gitignore\": \"f9bbef432249bbf55fb6cd4f435168e6e8ebc241\",\n  \"estructura.txt\": \"3d8869fa4687e873a1075a5ea2b2da2bca73da4a\",\n  \"LICENSE\": \"7df059597099bb7dcf25d2a9aedfaf4465f72d8d\",\n  \"pyproject.toml\": \"dd84e4c1cee766d6dfa5cd4ccb3c116a80dc1b57\",\n  \"README.md\": \"2de7a53f8363f167a633b6cea42fca1189281ca7\",\n  \".github\\\\dependabot.yml\": \"e77e6853e4c539c4a0e069e1296a58f210f2776e\",\n  \".github\\\\workflows\\\\python-tests.yml\": \"9730497d1f2a777557442071f963f9eb79e88aa4\",\n  \"rep_export_LINUXandMAC\\\\.hashes.json\": \"da39a3ee5e6b4b0d3255bfef95601890afd80709\",\n  \"rep_export_LINUXandMAC\\\\cli_utils_UNIX.py\": \"043ca9ddf53113a1b136c51f22cdbc910e74afb9\",\n  \"rep_export_LINUXandMAC\\\\generate_structure_UNIX.py\": \"728200266f9fe77eb28fcf69b40258d467bc691d\",\n  \"rep_export_LINUXandMAC\\\\tag_mapper_UNIX.py\": \"e9d55065d06dd9abe98bb4b8ab30625a2f7a3068\",\n  \"rep_export_LINUXandMAC\\\\tiddler_exporter_UNIX.py\": \"dd50a930c014d981051e3fdc6d3e54ef7ca7e1d4\",\n  \"rep_export_LINUXandMAC\\\\__init__.py\": \"da39a3ee5e6b4b0d3255bfef95601890afd80709\",\n  \"rep_export_LINUXandMAC\\\\scripts\\\\export_structure_wrapper_unix.py\": \"6223cd3e838490a59112c36df616232eeaee2903\",\n  \"rep_export_Windows\\\\cli_utils_Windows.py\": \"1761e6d433d40ec2e938fda0e58fcb3836eb9bba\",\n  \"rep_export_Windows\\\\generate_structure_windows.py\": \"4f6d8a46f92d0933ef7171efc39d11c2cf6715e2\",\n  \"rep_export_Windows\\\\tag_mapper_windows.py\": \"db15ed18236035e0f3f8a7ce5b8d415040f9bd6d\",\n  \"rep_export_Windows\\\\tiddler_exporter_windows.py\": \"efc37df217d365cab8edf688b4b52e5d1176615f\",\n  \"rep_export_Windows\\\\__init__.py\": \"da39a3ee5e6b4b0d3255bfef95601890afd80709\",\n  \"rep_export_Windows\\\\scripts_windows\\\\export_structure_wrapper_windows.py\": \"58f74e5e40a0a404c737f80cd0a3e7fc614bcd96\",\n  \"tests\\\\test-rep-export-LINUXandMAC\\\\test_generate_structure_LINUX&MAC.py\": \"688c05045ebc8cde1c1742b79e0a62150c63f6cf\",\n  \"tests\\\\test-rep-export-LINUXandMAC\\\\test_tiddler_exporter_UNIX.py\": \"d1d63d68a5ad7f989f932146d22b0d1b08182c2b\",\n  \"tests\\\\test-rep-export-Windows\\\\test_generate_structure_Windows.py\": \"44e7bfd0ae8bd5a534b3f1a92e7a20f96be2dee5\",\n  \"tests\\\\test-rep-export-Windows\\\\test_tiddler_exporter.py\": \"611204bbe142cffbab3ca6887cf1b029487b9255\"\n}\n```",
+  "type": "text",
+  "tags": "[[⚙️ JSON]] [[-rep_export_Windows_.hashes.json]] [[--- Codigo]] [[parte_de:--- Codigo]] [[parte_de:rep_export_Windows]] [[define:.hashes.json]]",
+  "tags_list": [
+    "[[⚙️ JSON]]",
+    "[[-rep_export_Windows_.hashes.json]]",
+    "[[--- Codigo]]",
+    "[[parte_de:--- Codigo]]",
+    "[[parte_de:rep_export_Windows]]",
+    "[[define:.hashes.json]]"
+  ],
+  "relations": {
+    "parte_de": [
+      "--- Codigo",
+      "rep_export_Windows"
+    ],
+    "define": [
+      ".hashes.json"
+    ]
+  }
 }

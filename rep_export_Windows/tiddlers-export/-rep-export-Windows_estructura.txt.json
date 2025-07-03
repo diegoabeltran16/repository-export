@@ -1,8 +1,0 @@
-{
-  "title": "-rep-export-Windows_estructura.txt",
-  "text": "## [[Tags]]\n[[⚙️ Text]] [[-rep-export-Windows_estructura.txt]] [[--- Codigo]]\n\n```text\n├── estructura.txt\n├── generate_structure.py\n├── scripts\n│   └── export_structure_wrapper_windows.py\n├── tag_mapper.py\n├── tiddler_exporter.py\n├── tiddler_tag_doc\n└── tiddlers-export\n    ├── -.github_dependabot.yml.json\n    ├── -.github_workflows_python-tests.yml.json\n    ├── -estructura.txt.json\n    ├── -LICENSE.json\n    ├── -README.md.json\n    ├── -rep-export-LINUXandMAC_.hashes.json.json\n    ├── -rep-export-LINUXandMAC_generate_structure.py.json\n    ├── -rep-export-LINUXandMAC_scripts_export_structure_wrapper.py.json\n    ├── -rep-export-LINUXandMAC_tag_mapper.py.json\n    ├── -rep-export-LINUXandMAC_tiddler_exporter.py.json\n    ├── -rep-export-Windows_.hashes.json.json\n    ├── -rep-export-Windows_generate_structure.py.json\n    ├── -rep-export-Windows_scripts_export_structure_wrapper_windows.py.json\n    ├── -rep-export-Windows_tag_mapper.py.json\n    ├── -rep-export-Windows_tiddler_exporter.py.json\n    ├── -test-rep-export-LINUXandMAC_test_generate_structure_LINUX&MAC.py.json\n    └── -test-rep-export-Windows_test_generate_structure_Windows.py.json\n```",
-  "tags": "[[⚙️ Text]] [[-rep-export-Windows_estructura.txt]] [[--- Codigo]]",
-  "type": "text/markdown",
-  "created": "20250608033205918",
-  "modified": "20250608033205918"
-}

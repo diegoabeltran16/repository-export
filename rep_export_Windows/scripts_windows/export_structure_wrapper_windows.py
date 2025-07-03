@@ -90,6 +90,9 @@ def main():
             exp_args = []
             if cli_utils_Windows.prompt_yes_no("¿Simulación (dry-run)?", default=False):
                 exp_args.append('--dry-run')
+            # Pregunta si quiere usar el nuevo esquema
+            if cli_utils_Windows.prompt_yes_no("¿Usar nuevo esquema de exportación (tags_list y relations)?", default=True):
+                exp_args.append('--new-schema')
             exp_args += cli_utils_Windows.get_additional_args('tiddler_exporter.py')
             code, _, _ = cli_utils_Windows.run_cmd([sys.executable, str(export)] + exp_args, cwd=base)
             if code != 0:

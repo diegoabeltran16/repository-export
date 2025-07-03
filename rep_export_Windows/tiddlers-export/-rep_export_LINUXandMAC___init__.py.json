@@ -1,8 +1,19 @@
 {
   "title": "-rep_export_LINUXandMAC___init__.py",
-  "text": "## [[Tags]]\n[[⚙️ Python]] [[-rep_export_LINUXandMAC___init__.py]] [[--- Codigo]]\n\n```Python\n\n```",
-  "tags": "[[⚙️ Python]] [[-rep_export_LINUXandMAC___init__.py]] [[--- Codigo]]",
-  "type": "text/markdown",
-  "created": "20250620153254441",
-  "modified": "20250620153254441"
+  "text": "RELATIONS:\n{\n  \"parte_de\": [\n    \"--- Codigo\",\n    \"rep_export_LINUXandMAC\"\n  ]\n}\n\n```Python\n\n```",
+  "type": "text",
+  "tags": "[[⚙️ Python]] [[-rep_export_LINUXandMAC___init__.py]] [[--- Codigo]] [[parte_de:--- Codigo]] [[parte_de:rep_export_LINUXandMAC]]",
+  "tags_list": [
+    "[[⚙️ Python]]",
+    "[[-rep_export_LINUXandMAC___init__.py]]",
+    "[[--- Codigo]]",
+    "[[parte_de:--- Codigo]]",
+    "[[parte_de:rep_export_LINUXandMAC]]"
+  ],
+  "relations": {
+    "parte_de": [
+      "--- Codigo",
+      "rep_export_LINUXandMAC"
+    ]
+  }
 }
