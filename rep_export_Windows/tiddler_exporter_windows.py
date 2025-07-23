@@ -196,15 +196,17 @@ def build_tiddler(file, content, use_new_schema=False):
     tags_rel = tags_from_relations(relations)
     all_tags = tags_semantic + tags_rel
     lang = detect_language(file)
-    # Relational block as pretty JSON
-    rel_block = json.dumps(relations, ensure_ascii=False, indent=2)
+    rel_path = str(file.relative_to(ROOT_DIR))
     tiddler = {
         "title": title,
-        "text": f"RELATIONS:\n{rel_block}\n\n```{lang}\n{content}\n```",
-        "type": "text",
-        "tags": " ".join(all_tags),
-        "tags_list": all_tags,
-        "relations": relations
+        "text": f"```{lang}\n{content}\n```",   # mantiene compatibilidad TW
+        "type": "text/markdown",
+        "tags": " ".join(all_tags),             # para TW
+        "tags_list": all_tags,                  # para IA
+        "relations": relations,                 # para IA
+        "hash": calc_hash(content),             # para IA
+        "path": rel_path,                       # para IA
+        "content_raw": content                  # opcional: texto plano
     }
     return tiddler
 
