@@ -38,3 +38,8 @@ gitignore  = ["pathspec>=0.10.1"]  # para soportar carga de .gitignore
 
 [tool.setuptools.packages.find]
 where = ["."]
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: tests que simulan escenarios de repos anidados (filesystem completo).",
+]

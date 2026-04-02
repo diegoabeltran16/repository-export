@@ -63,6 +63,30 @@ python -m pip install --upgrade pip
 pip install pathspec
 ```
 
+Nota sobre detección de raíz: los scripts principales aceptan la opción `--root <ruta>` y respetan la variable de entorno `REPO_EXPORT_ROOT`. Úsalo cuando la herramienta esté anidada dentro de otro repositorio para forzar la raíz objetivo.
+
+### Archivos grandes
+
+Al iniciar el wrapper, se escanea el repositorio y se muestra un resumen estadístico (total de archivos, media, mediana, P75). Si hay archivos que superan el límite, el menú te pregunta qué hacer:
+
+| Opción | Resultado |
+|--------|-----------|
+| 1 — Omitir (default) | Los archivos grandes se saltan |
+| 2 — Preview | Se exporta un fragmento de hasta 64 KB |
+| 3 — Copy | Se crea una copia gzip en `tiddlers-export/large/` |
+| 4 — Embed | El contenido completo se incrusta en el tiddler |
+| 5 — Ajustar límite | Permite redefinir el MAX y ver cuántos archivos quedan |
+
+El límite por defecto es **1 MB**. Puedes sobrescribirlo de dos formas:
+
+```bash
+# Variable de entorno (persiste en la sesión)
+export REPO_EXPORT_MAX_FILE_SIZE=5242880   # 5 MB
+
+# Flag directo al exportador
+python tiddler_exporter_windows.py --max-size 5242880
+```
+
 Luego ejecuta el wrapper correspondiente según tu OS:
 
 **Nota:** La funcionalidad de carga de tags personalizados desde la carpeta `tiddler_tag_doc` ha sido desactivada. El exportador genera tiddlers JSON basados en la estructura y el contenido del repositorio, sin procesamiento semántico adicional.
