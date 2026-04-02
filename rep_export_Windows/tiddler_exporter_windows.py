@@ -69,9 +69,18 @@ def calc_hash(content: str) -> str:
 
 def safe_title(path: Path) -> str:
     """
-    Convierte ruta en título: prefijo '-' y '_' en lugar de separadores.
+    Retorna la ruta relativa natural como display title para TiddlyWiki (separador '/').
+    Ejemplo: 'rep_export_Windows/tiddler_exporter_windows.py'
     """
-    return '-' + str(path.relative_to(ROOT_DIR)).replace(os.sep, '_')
+    return path.relative_to(ROOT_DIR).as_posix()
+
+
+def sanitize_filename(path: Path) -> str:
+    """
+    Genera un nombre de archivo seguro para disco: '/' -> '_', sin caracteres especiales al inicio.
+    Ejemplo: 'rep_export_Windows_tiddler_exporter_windows.py'
+    """
+    return path.relative_to(ROOT_DIR).as_posix().replace('/', '_').lstrip('.-')
 
 
 def detect_language(path: Path) -> str:
@@ -232,7 +241,7 @@ def export_tiddlers(dry_run: bool = False, use_new_schema: bool = False):
         if old_hashes.get(rel) == h:
             continue
         tiddler = build_tiddler(file, content, use_new_schema=use_new_schema)
-        out = OUTPUT_DIR / f"{tiddler['title']}.json"
+        out = OUTPUT_DIR / f"{sanitize_filename(file)}.json"
         if dry_run:
             safe_print(f"[dry-run] {rel}")
         else:

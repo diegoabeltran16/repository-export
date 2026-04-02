@@ -58,14 +58,14 @@ def test_gitignore_excludes_secret_files(tiddler_exporter):
 def test_always_include_estructura_and_gitignore(tiddler_exporter):
     tiddler_exporter.export_tiddlers(dry_run=False)
     files = [f.name for f in tiddler_exporter.OUTPUT_DIR.glob("*.json")]
-    expected = ["-estructura.txt.json", "-.gitignore.json"]
+    expected = ["estructura.txt.json", "gitignore.json"]
     for name in expected:
         assert name in files, f"{name} debería estar presente siempre."
 
 
 def test_toml_files_are_exported(tiddler_exporter):
     tiddler_exporter.export_tiddlers(dry_run=False)
-    out_file = tiddler_exporter.OUTPUT_DIR / "-config.toml.json"
+    out_file = tiddler_exporter.OUTPUT_DIR / "config.toml.json"
     assert out_file.exists(), "Archivo .toml no fue exportado correctamente"
     content = json.loads(out_file.read_text(encoding="utf-8"))
     assert "project" in content["text"], "Contenido del archivo .toml no fue exportado correctamente"
