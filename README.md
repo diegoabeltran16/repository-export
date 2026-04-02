@@ -26,9 +26,10 @@ Permite:
 ✔️ Genera un archivo `.json` por cada archivo válido<br>
 ✔️ Cada archivo se convierte en un tiddler TiddlyWiki con:
 - Título basado en su ruta
-- Tags (por tipo de archivo o definidos por plantilla)
+- Metadatos básicos (tipo detectado y fechas)
 - Bloque de código con resaltado (`markdown`, `python`, `go`, etc.)
 - Fecha de creación y modificación
+
 
 ---
 
@@ -42,8 +43,31 @@ rep-export-LINUXandMAC o rep-export-Windows
 - Python 3.7+
 - Comando `tree` instalado (`sudo apt install tree` o `brew install tree`)
 - PowerShell (Windows) o bash/zsh (Unix)
-4. (Opcional) Si tienes una estructura de tags en tu Tiddler puedes pegar la exportacion en formato .JSON en la carpeta: \tiddler_tag_doc
+4. (Opcional) Ajusta patrones de exclusión en `.gitignore` o usa `--exclude` / `--exclude-from` para filtrar qué se incluye.
 5. Corre el comando que se ajuste a tus OS y elije el menu de opciones que se ajuste a tus necesidades
+
+### Preparar entorno (recomendado)
+Antes de ejecutar cualquier script, crea y activa un entorno virtual e instala la dependencia `pathspec`:
+
+En Windows (PowerShell):
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install pathspec
+```
+
+En Linux / macOS (bash):
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install pathspec
+```
+
+Luego ejecuta el wrapper correspondiente según tu OS:
+
+**Nota:** La funcionalidad de carga de tags personalizados desde la carpeta `tiddler_tag_doc` ha sido desactivada. El exportador genera tiddlers JSON basados en la estructura y el contenido del repositorio, sin procesamiento semántico adicional.
 
 ### Linux / macOS
 ```bash
@@ -54,6 +78,63 @@ python3 rep-export-LINUXandMAC/scripts/export_structure_wrapper_unix.py
 
 ```bash
 python rep_export_Windows\scripts_windows\export_structure_wrapper_windows.py
+```
+
+### Uso interactivo (menú)
+Los wrappers incluyen un menú interactivo que simplifica las tareas comunes. Al ejecutar el script verás opciones similares a:
+
+- `1)` Generar estructura ASCII
+- `2)` Exportar tiddlers JSON
+- `3)` Generar estructura y exportar tiddlers
+- `4)` Ayuda
+- `5)` Salir
+
+Selecciona la opción deseada escribiendo su número y sigue las indicaciones en pantalla (confirmaciones, flags adicionales, etc.).
+
+
+### Comandos rápidos
+Si prefieres ejecutar pasos concretos sin el menú, aquí tienes comandos mínimos.
+
+En Windows (PowerShell):
+```powershell
+# Crear y activar un entorno virtual
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install pathspec
+
+# Generar estructura (sobrescribir)
+python rep_export_Windows/generate_structure_windows.py --force
+
+# Simular exportación (dry-run)
+python rep_export_Windows/tiddler_exporter_windows.py --dry-run
+
+# Exportar realmente
+python rep_export_Windows/tiddler_exporter_windows.py
+
+# Verificar salida
+Get-ChildItem .\\rep_export_Windows\\tiddlers-export\\
+```
+
+En Linux / macOS (bash):
+```bash
+# Crear y activar un entorno virtual
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install pathspec
+
+# Generar estructura (sobrescribir)
+python3 rep_export_LINUXandMAC/generate_structure_UNIX.py --force
+
+# Simular exportación (dry-run)
+python3 rep_export_LINUXandMAC/tiddler_exporter_UNIX.py --dry-run
+
+# Exportar realmente
+python3 rep_export_LINUXandMAC/tiddler_exporter_UNIX.py
+
+# Verificar salida
+ls rep_export_LINUXandMAC/tiddlers-export/
 ```
 6. Revisa la carpeta \tiddlers-export que debio crearse automaticamente , alli encontraras los tiddlers convertidos en formato .JSON
 

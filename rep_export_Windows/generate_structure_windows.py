@@ -97,7 +97,7 @@ def ascii_tree(root: Path, repo_root: Path, prefix: str = '', args=None, gitigno
 
 def write_atomic(path: Path, lines):
     """Escribe de forma atómica usando tempfile + replace."""
-    tmp = tempfile.NamedTemporaryFile('w', delete=False, encoding='utf-8')
+    tmp = tempfile.NamedTemporaryFile('w', delete=False, encoding='utf-8', dir=path.parent)
     with tmp:
         tmp.write('\n'.join(lines))
     Path(tmp.name).replace(path)
