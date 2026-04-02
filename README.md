@@ -1,7 +1,5 @@
 # 🧠 repository-export
-
 [![CI - Run Tests](https://github.com/diegoabeltran16/repository-export/actions/workflows/python-tests.yml/badge.svg)](https://github.com/diegoabeltran16/repository-export/actions/workflows/python-tests.yml)
-
 
 > Repositorio multiplataforma para exportar estructuras de proyectos y generar tiddlers TiddlyWiki con control de versiones y pruebas automatizadas.
 **Automatiza la creación de documentación semántica a partir de cualquier repositorio de código.**
@@ -91,62 +89,12 @@ Los wrappers incluyen un menú interactivo que simplifica las tareas comunes. Al
 
 Selecciona la opción deseada escribiendo su número y sigue las indicaciones en pantalla (confirmaciones, flags adicionales, etc.).
 
-
-### Comandos rápidos
-Si prefieres ejecutar pasos concretos sin el menú, aquí tienes comandos mínimos.
-
-En Windows (PowerShell):
-```powershell
-# Crear y activar un entorno virtual
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-pip install pathspec
-
-# Generar estructura (sobrescribir)
-python rep_export_Windows/generate_structure_windows.py --force
-
-# Simular exportación (dry-run)
-python rep_export_Windows/tiddler_exporter_windows.py --dry-run
-
-# Exportar realmente
-python rep_export_Windows/tiddler_exporter_windows.py
-
-# Verificar salida
-Get-ChildItem .\\rep_export_Windows\\tiddlers-export\\
-```
-
-En Linux / macOS (bash):
-```bash
-# Crear y activar un entorno virtual
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-pip install pathspec
-
-# Generar estructura (sobrescribir)
-python3 rep_export_LINUXandMAC/generate_structure_UNIX.py --force
-
-# Simular exportación (dry-run)
-python3 rep_export_LINUXandMAC/tiddler_exporter_UNIX.py --dry-run
-
-# Exportar realmente
-python3 rep_export_LINUXandMAC/tiddler_exporter_UNIX.py
-
-# Verificar salida
-ls rep_export_LINUXandMAC/tiddlers-export/
-```
-6. Revisa la carpeta \tiddlers-export que debio crearse automaticamente , alli encontraras los tiddlers convertidos en formato .JSON
-
----
-
 ## 🧭 ¿Para qué sirve?
 
 | Caso | Beneficio |
 |------|-----------|
-| Estudiar un repo ajeno | Documentación viva lista para navegar |
+| Estudiar un repo ajeno | Documentación lista para navegar |
 | Auditar bugs o deuda técnica | Filtra por tags o analiza estructura |
-| Enseñar con ejemplos reales | Cada archivo es una unidad didáctica |
 | Automatizar CI/CD | Exportación controlada por cambios reales |
 | Crear datasets para LLM | Markdown estructurado + semántica limpia |
 
@@ -154,20 +102,17 @@ ls rep_export_LINUXandMAC/tiddlers-export/
 
 ## 🔎 Filosofía
 
-- 🧱 Modularidad
-- 🧠 Simplicidad (KISS)
-- 📚 Documentación como parte del código
-- 💡 Mantenibilidad multiplataforma
+- Modularidad
+- Simplicidad (KISS)
+- Documentación como parte del código
+- Mantenibilidad multiplataforma
 
 > “Cualquiera puede hablar, muestrame el codigo” — Linus Torvalds
 
 ---
-
-## 🚀 Contribuir
 Este proyecto está hecho para crecer contigo.  
 Úsalo, modifícalo, exprímelo.  
 Y si lo mejoras: compártelo.
-
 ---
 
 ## 📄 Licencia
