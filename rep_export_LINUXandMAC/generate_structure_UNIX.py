@@ -21,6 +21,7 @@ import tempfile
 from pathlib import Path
 from pathspec import PathSpec
 from fnmatch import fnmatch
+from detect_root import find_repo_root
 
 # Exclusiones por defecto
 IGNORED_DIRS = {
@@ -144,6 +145,8 @@ def parse_args():
         help="Aumenta nivel de detalle en logs"
     )
     p.add_argument('--force', '-f', action='store_true', help="Sobrescribir sin preguntar.")
+    p.add_argument('--root', type=Path, default=None,
+                   help="Raíz del repositorio a analizar. Sobreescribe detección automática.")
     return p.parse_args()
 
 
@@ -152,7 +155,7 @@ def main():
     level = logging.WARNING - (10 * args.verbose)
     logging.basicConfig(level=level, format='[%(levelname)s] %(message)s')
 
-    repo_root = Path(__file__).resolve().parent
+    repo_root = Path(args.root).resolve() if args.root else find_repo_root(Path(__file__))
     os.chdir(repo_root)
 
     ignore_spec = load_ignore_spec(repo_root) if args.honor_gitignore else None

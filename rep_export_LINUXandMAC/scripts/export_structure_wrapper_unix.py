@@ -28,6 +28,7 @@ from rep_export_LINUXandMAC.cli_utils_UNIX import (
     confirm_overwrite,
     safe_print
 )
+from rep_export_LINUXandMAC.large_file_scanner import scan_large_files, fmt_size
 
 
 def show_help():
@@ -53,6 +54,58 @@ def main():
     if missing:
         safe_print(f"❌ No se encontraron: {', '.join(str(m) for m in missing)}")
         sys.exit(1)
+
+    # Sobreescritura opcional de la raíz del repositorio
+    root_override = None
+    if prompt_yes_no("¿Especificar raíz del repositorio manualmente?", default=False):
+        root_override = input("Ruta del repositorio objetivo: ").strip() or None
+
+    # --- Escaneo de archivos grandes ---
+    scan_root = Path(root_override) if root_override else base
+    large_include = False
+    large_action = 'preview'
+    large_max_size = None
+
+    try:
+        stats = scan_large_files(scan_root)
+    except Exception:
+        stats = None
+
+    if stats and stats.large:
+        safe_print(f"\n⚠  Archivos grandes detectados: {len(stats.large)} archivo(s)")
+        safe_print(f"   Repositorio: {stats.total} archivos  |  Media: {fmt_size(int(stats.mean))}  |  Mediana: {fmt_size(int(stats.median))}  |  P75: {fmt_size(int(stats.p75))}")
+        safe_print(f"   Límite MAX sugerido: {fmt_size(stats.suggested_max_bytes)}")
+        safe_print("   Top archivos grandes:")
+        for fpath, fsize in stats.large[:5]:
+            try:
+                rel = fpath.relative_to(scan_root)
+            except ValueError:
+                rel = fpath
+            safe_print(f"     {fmt_size(fsize):>10}  {rel}")
+        safe_print("\n¿Qué hacer con los archivos grandes?")
+        safe_print("  1) Omitir (default)")
+        safe_print("  2) Incluir todos — modo: preview (primeros 64 KB de texto)")
+        safe_print("  3) Incluir todos — modo: copy (copia gzip en tiddlers-export/large/)")
+        safe_print("  4) Incluir todos — modo: embed (contenido completo en tiddler)")
+        safe_print("  5) Ajustar límite MAX y re-evaluar")
+        large_choice = input("Selecciona [1-5, Enter=1]: ").strip() or '1'
+        if large_choice == '2':
+            large_include, large_action = True, 'preview'
+        elif large_choice == '3':
+            large_include, large_action = True, 'copy'
+        elif large_choice == '4':
+            large_include, large_action = True, 'embed'
+        elif large_choice == '5':
+            try:
+                mb = float(input(f"  Nuevo límite en MB [{stats.suggested_max_bytes // (1024*1024):.1f}]: ").strip() or str(stats.suggested_max_bytes / (1024*1024)))
+                large_max_size = int(mb * 1024 * 1024)
+                safe_print(f"  Límite establecido: {fmt_size(large_max_size)}")
+                stats2 = scan_large_files(scan_root, large_max_size)
+                safe_print(f"  Con este límite: {len(stats2.large)} archivo(s) grande(s)")
+            except (ValueError, Exception):
+                safe_print("  Valor inválido, se usará el límite por defecto.")
+    elif stats:
+        safe_print(f"\n✅ Sin archivos grandes detectados ({stats.total} archivos, máximo sugerido: {fmt_size(stats.suggested_max_bytes)})")
 
     while True:
         safe_print("\n=== Menú de Opciones ===")
@@ -81,6 +134,8 @@ def main():
             out_path = base / out_name
             if confirm_overwrite(out_path):
                 args += ['--output', out_name, '--force']
+                if root_override:
+                    args += ['--root', root_override]
                 safe_print("⏳ Generando estructura, esto puede tardar unos segundos...")
                 code, _, _ = run_cmd([sys.executable, str(struct), '-v'] + args, cwd=base)
                 if code != 0:
@@ -96,7 +151,14 @@ def main():
             exp_args = []
             if prompt_yes_no("¿Simulación (dry-run)?", default=False):
                 exp_args.append('--dry-run')
+            # Pasar configuración de archivos grandes
+            if large_include:
+                exp_args += ['--include-large', '--large-action', large_action]
+            if large_max_size is not None:
+                exp_args += ['--max-size', str(large_max_size)]
             exp_args += get_additional_args('tiddler_exporter_UNIX.py')
+            if root_override:
+                exp_args += ['--root', root_override]
             code, _, _ = run_cmd([sys.executable, str(export)] + exp_args, cwd=base)
             if code != 0:
                 if prompt_yes_no("Error al exportar. Volver al menú?", default=True):

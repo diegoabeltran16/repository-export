@@ -17,6 +17,7 @@ from pathspec import PathSpec
 
 from cli_utils_Windows import load_ignore_spec, is_ignored, confirm_overwrite
 from tag_mapper_windows import get_tags_for_file  # si lo necesitas
+from detect_root import find_repo_root
 
 # Exclusiones por defecto (sin __pycache__ para tests)
 IGNORED_DIRS = {'.git', '.svn', '.hg', '.idea', 'node_modules', 'dist', 'build', 'venv', '.mypy_cache'}
@@ -111,7 +112,9 @@ def parse_args():
     p.add_argument('--exclude-from', type=Path, help="Archivo con patrones de exclusión.")
     p.add_argument('--honor-gitignore', action='store_true', help="Respetar .gitignore.")
     p.add_argument('--verbose', '-v', action='count', default=0, help="Nivel de detalle logs.")
-    p.add_argument('--force', '-f', action='store_true', help="Sobrescribir sin preguntar.")  # <--- NUEVO
+    p.add_argument('--force', '-f', action='store_true', help="Sobrescribir sin preguntar.")
+    p.add_argument('--root', type=Path, default=None,
+                   help="Raíz del repositorio a analizar. Sobreescribe detección automática.")
     return p.parse_args()
 
 
@@ -119,7 +122,7 @@ def main():
     args = parse_args()
     level = logging.WARNING - 10 * args.verbose
     logging.basicConfig(level=level, format='[%(levelname)s] %(message)s')
-    repo_root = Path(__file__).resolve().parent.parent
+    repo_root = Path(args.root).resolve() if args.root else find_repo_root(Path(__file__))
     os.chdir(repo_root)
     if args.exclude_from and args.exclude_from.is_file():
         args.exclude += [ln.strip() for ln in args.exclude_from.read_text(encoding='utf-8').splitlines() if ln.strip() and not ln.strip().startswith('#')]
