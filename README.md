@@ -110,10 +110,9 @@ Selecciona la opción deseada escribiendo su número y sigue las indicaciones en
 > “Cualquiera puede hablar, muestrame el codigo” — Linus Torvalds
 
 ---
+
+## 📄 Licencia
+Apache 2.0 — Puedes usarlo, modificarlo y distribuirlo libremente, siempre que mantengas el aviso de licencia y las condiciones incluidas. 
 Este proyecto está hecho para crecer contigo.  
 Úsalo, modifícalo, exprímelo.  
 Y si lo mejoras: compártelo.
----
-
-## 📄 Licencia
-Apache 2.0 — Puedes usarlo, modificarlo y distribuirlo libremente, siempre que mantengas el aviso de licencia y las condiciones incluidas.
