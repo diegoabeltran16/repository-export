@@ -63,6 +63,120 @@ python -m pip install --upgrade pip
 pip install pathspec
 ```
 
+Nota rápida (si el comando `venv` se queda bloqueado o muestra una traza con `ensurepip`):
+
+- En Windows intenta usar el lanzador: `py -3 -m venv .venv` y luego `.\.venv\Scripts\Activate.ps1`.
+- Si sigue fallando, crea el entorno sin `pip` y haz bootstrap manualmente:
+	```powershell
+	python -m venv .venv --without-pip
+	Invoke-WebRequest -UseBasicParsing https://bootstrap.pypa.io/get-pip.py -OutFile get-pip.py
+	.\.venv\Scripts\python.exe get-pip.py
+	```
+- Alternativa: si el entorno ya está activado pero falta `pip`, ejecuta dentro del venv:
+	```powershell
+	python -m ensurepip --upgrade
+	```
+
+Qué esperar al ejecutar el wrapper:
+
+- `--dry-run` o elegir "Simulación" en el menú no escribe archivos; solo muestra qué se haría.
+- Ejecución real escribe tiddlers JSON en `tiddlers-export/` (copias gzip en `tiddlers-export/large/` si usas `--include-large --large-action copy`).
+
+Copiar `repository-export` a otro repo (scripts)
+
+Si prefieres copiar la carpeta completa y excluir metadata/artefactos locales, hay scripts útiles en `scripts/`:
+
+- `scripts/copy_repo.sh` — bash/rsync (Linux/macOS)
+- `scripts/copy_repo.ps1` — PowerShell/Robocopy (Windows)
+
+Ejemplo (bash):
+```bash
+# desde el directorio que contiene repository-export
+./scripts/copy_repo.sh ./repository-export /ruta/al/repo/tools/repository-export
+```
+
+Ejemplo (PowerShell):
+```powershell
+# desde la carpeta del proyecto
+.\scripts\copy_repo.ps1 -Source .\repository-export -Dest D:\ruta\al\repo\tools\repository-export
+```
+
+Ambos excluyen por defecto: `.git`, `.venv`, `tiddlers-export`, `__pycache__` y `.pytest_cache`.
+
+Comprobaciones rápidas (ver que todo está listo)
+
+```powershell
+# 1) Versión de Python
+python --version
+
+# 2) Ejecutable usado
+python -c "import sys; print(sys.executable)"
+
+# 3) Pip y paquete necesario
+python -m pip --version
+python -m pip show pathspec || pip install pathspec
+
+# 4) Dry-run del exportador (no escribe archivos)
+python rep_export_Windows\tiddler_exporter_windows.py --dry-run --root . --new-schema
+
+# 5) Listar salidas (si ejecutas real export)
+Get-ChildItem -Recurse .\tiddlers-export\ | Select-Object FullName, Length
+```
+
+Salir del entorno virtual (`venv`)
+
+- En PowerShell o Command Prompt (Windows):
+```powershell
+deactivate
+# o cerrar la ventana de la terminal
+```
+- En bash (Linux/macOS):
+```bash
+deactivate
+# o cerrar la terminal
+```
+
+### Requisitos para desarrollo y tests
+
+Para ejecutar los tests y trabajar en el proyecto localmente, tras crear y activar el entorno virtual instale las dependencias de desarrollo:
+
+En Windows (PowerShell):
+```powershell
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install pathspec pytest
+```
+
+En Linux / macOS (bash):
+```bash
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install pathspec pytest
+```
+
+Opcional (recomendado para facilitar imports locales):
+```bash
+pip install -e .
+```
+
+Configuración recomendada para VS Code
+
+- Seleccione el intérprete del proyecto: `Ctrl+Shift+P` → `Python: Select Interpreter` → elija el `.venv` del proyecto.
+- (Opcional) Añada `.vscode/settings.json` con las siguientes opciones para que Pylance indexe los módulos locales y habilite `pytest` en el panel de tests:
+
+```json
+{
+	"python.analysis.extraPaths": [
+		"rep_export_Windows",
+		"rep_export_LINUXandMAC"
+	],
+	"python.testing.pytestEnabled": true,
+	"python.testing.pytestArgs": ["tests"]
+}
+```
+
+Con esto Pylance dejará de mostrar advertencias "could not be resolved" para los módulos locales y VS Code podrá ejecutar `pytest` desde el panel de tests.
+
 Nota sobre detección de raíz: los scripts principales aceptan la opción `--root <ruta>` y respetan la variable de entorno `REPO_EXPORT_ROOT`. Úsalo cuando la herramienta esté anidada dentro de otro repositorio para forzar la raíz objetivo.
 
 ### Archivos grandes
