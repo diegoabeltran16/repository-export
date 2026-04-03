@@ -157,8 +157,7 @@ def main():
                 if cli_utils_Windows.prompt_yes_no("Error al exportar. Volver al menú?", default=True):
                     continue
                 sys.exit(code)
-            if '--dry-run' in exp_args:
-                cli_utils_Windows.safe_print("\n🚀 Ejecutando exportación real...")
+            if '--dry-run' in exp_args and cli_utils_Windows.prompt_yes_no("Dry-run completado. Ejecutar real?", default=True):
                 real_args = [a for a in exp_args if a != '--dry-run']
                 code, _, _ = cli_utils_Windows.run_cmd([sys.executable, str(export)] + real_args, cwd=base)
                 if code != 0:
