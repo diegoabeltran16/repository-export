@@ -123,13 +123,13 @@ def detect_language(file_path: Path) -> str:
 
 def get_tags_for_file(file_path: Path) -> List[str]:
     """Devuelve lista de tags TiddlyWiki para `file_path`."""
-    # Construir título basado en ruta
+    # Construir título basado en ruta (debe coincidir con safe_title del exporter)
     try:
         repo_root = Path(__file__).resolve().parents[1]
         rel = file_path.relative_to(repo_root)
-        title = '-' + str(rel).replace(os.sep, '_')
+        title = rel.as_posix()
     except Exception:
-        title = '-' + file_path.name
+        title = file_path.name
 
     # Cargar tags personalizados si existen
     if title in title_to_tags:
