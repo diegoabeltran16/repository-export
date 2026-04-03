@@ -301,7 +301,7 @@ def build_large_tiddler(file: Path, action: str = 'preview', preview_bytes: int 
     }
 
 
-def build_tiddler(file, content, use_new_schema=False):
+def build_tiddler(file, content):
     title = safe_title(file)
     tags_semantic = tag_mapper.get_tags_for_file(file)
     relations = infer_relations(file, content)
@@ -324,7 +324,6 @@ def build_tiddler(file, content, use_new_schema=False):
 
 def export_tiddlers(
     dry_run: bool = False,
-    use_new_schema: bool = False,
     include_large: bool = False,
     large_action: str = 'preview',
     preview_bytes: int = PREVIEW_BYTES,
@@ -369,7 +368,7 @@ def export_tiddlers(
             content = file.read_text(encoding='utf-8', errors='replace')
         except Exception:
             continue
-        tiddler = build_tiddler(file, content, use_new_schema=use_new_schema)
+        tiddler = build_tiddler(file, content)
         out = OUTPUT_DIR / f"{sanitize_filename(file)}.json"
         if dry_run:
             safe_print(f"[dry-run] {rel}")
@@ -389,7 +388,6 @@ def export_tiddlers(
 if __name__ == '__main__':
     _p = argparse.ArgumentParser(description="Exporta tiddlers JSON del repositorio.")
     _p.add_argument('--dry-run', action='store_true', help="Simular sin escribir archivos.")
-    _p.add_argument('--new-schema', action='store_true', help="Usar schema extendido.")
     _p.add_argument('--include-large', action='store_true',
                     help="Incluir archivos grandes (por encima de --max-size).")
     _p.add_argument('--large-action', choices=['preview', 'copy', 'embed'], default='preview',
@@ -406,7 +404,6 @@ if __name__ == '__main__':
         IGNORE_SPEC = load_ignore_spec(ROOT_DIR)
     export_tiddlers(
         dry_run=_args.dry_run,
-        use_new_schema=_args.new_schema,
         include_large=_args.include_large,
         large_action=_args.large_action,
         preview_bytes=_args.preview_bytes,

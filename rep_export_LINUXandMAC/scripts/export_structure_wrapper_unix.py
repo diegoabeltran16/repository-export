@@ -129,7 +129,6 @@ def main():
             args = []
             if prompt_yes_no("¿Excluir patrones de .gitignore? (no oculta .gitignore)", default=False):
                 args.append('--honor-gitignore')
-            args += get_additional_args('generate_structure_UNIX.py')
             out_name = input("Nombre de salida [estructura.txt]: ").strip() or 'estructura.txt'
             out_path = base / out_name
             if confirm_overwrite(out_path):
@@ -156,7 +155,6 @@ def main():
                 exp_args += ['--include-large', '--large-action', large_action]
             if large_max_size is not None:
                 exp_args += ['--max-size', str(large_max_size)]
-            exp_args += get_additional_args('tiddler_exporter_UNIX.py')
             if root_override:
                 exp_args += ['--root', root_override]
             code, _, _ = run_cmd([sys.executable, str(export)] + exp_args, cwd=base)
@@ -164,7 +162,8 @@ def main():
                 if prompt_yes_no("Error al exportar. Volver al menú?", default=True):
                     continue
                 sys.exit(code)
-            if '--dry-run' in exp_args and prompt_yes_no("Dry-run completado. Ejecutar real?", default=True):
+            if '--dry-run' in exp_args:
+                safe_print("\n🚀 Ejecutando exportación real...")
                 real_args = [a for a in exp_args if a != '--dry-run']
                 code, _, _ = run_cmd([sys.executable, str(export)] + real_args, cwd=base)
                 if code != 0:

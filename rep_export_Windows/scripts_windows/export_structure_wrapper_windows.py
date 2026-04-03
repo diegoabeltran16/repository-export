@@ -124,7 +124,6 @@ def main():
             args = []
             if cli_utils_Windows.prompt_yes_no("¿Excluir patrones de .gitignore? (no oculta .gitignore)", default=False):
                 args.append('--honor-gitignore')
-            args += cli_utils_Windows.get_additional_args('generate_structure.py')
             out_name = input("Nombre de salida [estructura.txt]: ").strip() or 'estructura.txt'
             out_path = base / out_name
             if cli_utils_Windows.confirm_overwrite(out_path):
@@ -146,15 +145,11 @@ def main():
             exp_args = []
             if cli_utils_Windows.prompt_yes_no("¿Simulación (dry-run)?", default=False):
                 exp_args.append('--dry-run')
-            # Pregunta si quiere usar el nuevo esquema
-            if cli_utils_Windows.prompt_yes_no("¿Usar nuevo esquema de exportación (tags_list y relations)?", default=True):
-                exp_args.append('--new-schema')
             # Pasar configuración de archivos grandes
             if large_include:
                 exp_args += ['--include-large', '--large-action', large_action]
             if large_max_size is not None:
                 exp_args += ['--max-size', str(large_max_size)]
-            exp_args += cli_utils_Windows.get_additional_args('tiddler_exporter.py')
             if root_override:
                 exp_args += ['--root', root_override]
             code, _, _ = cli_utils_Windows.run_cmd([sys.executable, str(export)] + exp_args, cwd=base)
@@ -162,7 +157,8 @@ def main():
                 if cli_utils_Windows.prompt_yes_no("Error al exportar. Volver al menú?", default=True):
                     continue
                 sys.exit(code)
-            if '--dry-run' in exp_args and cli_utils_Windows.prompt_yes_no("Dry-run completado. Ejecutar real?", default=True):
+            if '--dry-run' in exp_args:
+                cli_utils_Windows.safe_print("\n🚀 Ejecutando exportación real...")
                 real_args = [a for a in exp_args if a != '--dry-run']
                 code, _, _ = cli_utils_Windows.run_cmd([sys.executable, str(export)] + real_args, cwd=base)
                 if code != 0:
